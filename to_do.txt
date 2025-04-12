@@ -1,0 +1,2 @@
+Add cpgea_with_counts and roadmap WGBS to TumourMethData
+Deal with custom packages
