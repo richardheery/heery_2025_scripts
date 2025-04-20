@@ -1,0 +1,19 @@
+STATE NO.	MNEMONIC	DESCRIPTION
+1	TssA	Active TSS
+2	TssFlnk	Flanking TSS
+3	TssFlnkU	Flanking TSS Upstream
+4	TssFlnkD	Flanking TSS Downstream
+5	Tx	Strong transcription
+6	TxWk	Weak transcription
+7	EnhG1	Genic enhancer1
+8	EnhG2	Genic enhancer2
+9	EnhA1	Active Enhancer 1
+10	EnhA2	Active Enhancer 2
+11	EnhWk	Weak Enhancer
+12	ZNF/Rpts	ZNF genes & repeats
+13	Het	Heterochromatin
+14	TssBiv	Bivalent/Poised TSS
+15	EnhBiv	Bivalent Enhancer
+16	ReprPC	Repressed PolyComb
+17	ReprPCWk	Weak Repressed PolyComb
+18	Quies	Quiescent/Low
