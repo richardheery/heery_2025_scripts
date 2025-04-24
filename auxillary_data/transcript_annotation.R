@@ -4,7 +4,7 @@
 library(GenomicFeatures)
 library(dplyr)
 library(rtracklayer)
-library(genomeTools)
+library(genomicTools)
 
 # Download GFF3 annotation file for Gencode version 38. Downloaded 2/6/2024
 system("wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.annotation.gff3.gz")

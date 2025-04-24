@@ -14,11 +14,11 @@ download_meth_dataset(dataset = "roadmap_wgbs_hg38", "methylation_data/")
 
 # Download transcript counts for CPGEA and MCRPC 
 dir.create("rnaseq_data")
-cpgea_transcript_counts_path = download_rnaseq_dataset(dataset = "cpgea_wgbs_hg38", "rnaseq_data/")
-mcrpc_transcript_counts_path = download_rnaseq_dataset(dataset = "mcrpc_wgbs_hg38", "rnaseq_data/")
+cpgea_transcript_counts_path = download_rnaseq_dataset(dataset = "cpgea_wgbs_hg38")
+mcrpc_transcript_counts_path = download_rnaseq_dataset(dataset = "mcrpc_wgbs_hg38")
 
 # Get names of protein-coding transcripts
-pc_transcript_ids = readRDS("../genomes/pc_transcripts_gr.rds")$ID
+pc_transcript_ids = readRDS("../auxillary_data/pc_transcripts_gr.rds")$ID
 
 # Load counts for CPGEA
 cpgea_transcript_counts = data.frame(data.table::fread(cpgea_transcript_counts_path), row.names = 1)
