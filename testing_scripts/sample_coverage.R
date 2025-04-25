@@ -39,11 +39,16 @@ region_mean_coverage_df = data.frame(t(data.frame(region_mean_coverage)))
 
 # CPGEA samples appear to have very low coverage of CpG islands (1X), predicted promoters (3X), CTCF binding sites (7x) 
 # compared to MCRPC samples where coverage is still less than other regions but comparable
+# LINEs, SINEs and LTRs are among the most covered regions in both CPGEA ands MCRPC samples 
 rowMeans(select(region_mean_coverage_df, starts_with("D")))
 rowMeans(select(region_mean_coverage_df, starts_with("N")))
 rowMeans(select(region_mean_coverage_df, starts_with("T")))
 
-# Calculate the mean methylation for each region class in all samples. Took 17 minutes.
+# Calculate the mean methylation for each region class in all samples. Took 21 minutes.
 system.time({region_mean_methylation = lapply(genome_annotation_chr1_list, function(x)
-  colMeans(assay(subsetByOverlaps(combined_rse, x), 1)))})
+  colMeans(assay(subsetByOverlaps(combined_rse, x), 1), na.rm = T))})
 region_mean_methylation_df = data.frame(t(data.frame(region_mean_methylation)))
+
+rowMeans(select(region_mean_methylation_df, starts_with("D")))
+rowMeans(select(region_mean_methylation_df, starts_with("N")))
+rowMeans(select(region_mean_methylation_df, starts_with("T")))
