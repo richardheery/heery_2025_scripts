@@ -4,25 +4,27 @@
 library(dplyr)
 library(cowplot)
 library(GenomicRanges)
+library(SummarizedExperiment)
+library(methylTools)
 source("../auxillary_scripts/plotting_functions.R")
 source("../auxillary_scripts/diff_meth_methylsig.R")
-source("../example_differential_methylation_plot_functions.R")
+source("../auxillary_scripts/example_differential_methylation_plot_functions.R")
 
 ### Test differential methylation using the different promoter definitions
 
 # Get promoter definition list
 promoter_definition_list = readRDS("promoter_definition_list.rds")
 
-# Set names of promoters equal to transcript_id
-promoter_definition_list = lapply(promoter_definition_list, function(x) setNames(x, x$transcript_id))
-
 # Get path to CPGEA Meth RSE and convert to a methylation RSE
-cpgea_meth_rse = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylation_data/cpgea_wgbs_with_coverage_hg38/")
+cpgea_meth_rse = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylation_data/cpgea_meth_rse")
 
 # Create a BPPARAM object
-bpparam = BiocParallel::MulticoreParam(10)
+bpparam = BiocParallel::MulticoreParam(5)
 
-# Perform differential analysis for different promoter definitions. Takes 25 minutes with 10 cores. 
+# Add number of methylated and unmethylated reads to cpgea_meth_rse
+cpgea_meth_rse = methylTools::add_counts_to_meth_rse(cpgea_meth_rse)
+
+# Perform differential analysis for different promoter definitions. Takes 19 minutes with 5 cores. 
 system.time({promoter_diff_meth_results = lapply(promoter_definition_list, function(x) diff_meth_methylsig(meth_rse = cpgea_meth_rse, genomic_regions = x, 
   max_sites_per_chunk = floor(625000000/ncol(cpgea_meth_rse)), group_column = "condition", case = "Tumour", control = "Normal", BPPARAM = bpparam))})
 saveRDS(promoter_diff_meth_results, "promoter_diff_meth_results.rds")
@@ -66,22 +68,25 @@ promoter_diff_meth_results_df_summary = mutate(
 meth_change_proportions_barplot = ggplot(promoter_diff_meth_results_df_summary, 
   aes(y = count, x = definition, fill = meth_change, label = paste0(round(freq, 2)*100, "%"))) +
   geom_col(position = "dodge", color  = "black") +
-  geom_text(mapping = aes(x = definition, y = count + 1000, group = meth_change), position = position_dodge(width = 0.9), size = 5)
+  geom_text(mapping = aes(x = definition, y = count + 200, group = meth_change), position = position_dodge(width = 0.9), size = 5)
 
 # Adjust theme of barplot and save
 meth_change_proportions_barplot = customize_ggplot_theme(meth_change_proportions_barplot, title = NULL, 
   xlab = "Promoter Definition", ylab = "Number of Promoters", fill_colors = c("#4B878BFF", "grey", "#D01C1FFF"), 
-  scale_y = scale_y_continuous(limits = c(0, 60000), expand = expansion(mult = c(0, 0.05)), labels = scales::comma))
+  scale_y = scale_y_continuous(limits = c(0, 15000), expand = expansion(mult = c(0, 0.05)), labels = scales::comma))
 meth_change_proportions_barplot
 
 ### Create plots showing differential methylation results for example transcripts
+
+# Get TSS GRanges
+gencode_tss_gr = readRDS("../auxillary_data/cage_supported_gencode_tss.rds")
 
 # Create a data.frame with the coordinates of the different promoter definitions
 promoter_definition_df = readRDS("promoter_definition_df.rds")
 
 # Make promoter coordinates plot
 promoter_region_plot = ggplot(promoter_definition_df, 
-  aes(xmin = upstream, xmax = downstream, x = NULL, y = definition,  group = definition)) + 
+  aes(xmin = -upstream, xmax = downstream, x = NULL, y = definition,  group = definition)) + 
   geom_linerange(linewidth = 12, position = position_dodge(0.06), color = RColorBrewer::brewer.pal(9, "YlGn")[c(2, 4, 6, 8, 9)]) +
   theme_classic() + 
   theme(plot.title = element_text(hjust = 0.5, size = 24), legend.text = element_text(size = 18),
@@ -91,21 +96,19 @@ promoter_region_plot = ggplot(promoter_definition_df,
   labs(x = NULL, y = "Promoter\nDefinition")
 
 # Add significance symbol to promoter_diff_meth_results
-promoter_diff_meth_results$significance = ::sig_sym(promoter_diff_meth_results$fdr, symbol = "\u204E")
+promoter_diff_meth_results_df$significance = sig_sym(promoter_diff_meth_results_df$fdr, symbol = "\u204E")
 
 # Create a data.frame with the methylation values for all common_transcripts
-promoter_definition_methylation_df = tidyr::pivot_wider(select(promoter_diff_meth_results, definition, transcript_id, meth_diff), names_from = definition, values_from = meth_diff)
-promoter_definition_methylation_df = tibblecolumn_to_rownames(promoter_definition_methylation_df, "transcript_id")
+promoter_definition_methylation_df = tidyr::pivot_wider(select(promoter_diff_meth_results_df, definition, transcript_id, meth_diff), names_from = definition, values_from = meth_diff)
+promoter_definition_methylation_df = tibble::column_to_rownames(promoter_definition_methylation_df, "transcript_id")
 
 # Make plots of CpG methylation change and promoter definition differential methylation for FLT1 and SLC5A8
 flt1_cpg_meth_change_plot = plot_cpg_methylation_change(transcript = "ENST00000282397", 
-  xlabel = expression("Distance to" ~ italic("FLT1") ~ "TSS (bp)"))
+  title = expression("Distance to" ~ italic("FLT1") ~ "TSS (bp)"))
 slc5a8_cpg_meth_change_plot = plot_cpg_methylation_change(transcript = "ENST00000536262", 
-  xlabel = expression("Distance to" ~ italic("SLC5A8") ~ "TSS (bp)"))
-flt1_promoters_plot = plot_promoter_methylation_change("ENST00000282397", 
-  title = "*FLT1* Promoter<br>Methylation Change")
-slc5a8_promoters_plot = plot_promoter_methylation_change("ENST00000536262", 
-  title = "*SLC5A8* Promoter<br>Methylation Change")
+  title = expression("Distance to" ~ italic("SLC5A8") ~ "TSS (bp)"))
+flt1_promoters_plot = plot_promoter_methylation_change("ENST00000282397")
+slc5a8_promoters_plot = plot_promoter_methylation_change("ENST00000536262")
 
 # Combine plots into a single figure along with promoter definition plot and save
 promoters_and_examples_plot_list = list(promoter_region_plot, NULL, 

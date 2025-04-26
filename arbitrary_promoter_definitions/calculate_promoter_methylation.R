@@ -8,7 +8,7 @@ library(dplyr)
 promoter_definition_list = readRDS("promoter_definition_list.rds")
 
 # Load CPGEA methylation RSE
-cpgea_rse = HDF5Array::loadHDF5SummarizedExperiment("../auxiallary_data/methylation_data/cpgea_meth_rse_hg38")
+cpgea_rse = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylation_data/cpgea_meth_rse/")
 
 # Create a BPPARAM object
 bpparam = BiocParallel::MulticoreParam(3)
@@ -29,15 +29,12 @@ system.time({for(definition in names(promoter_definition_list)){
 }})
 
 # Get paths to all promoter methylation definition tables
-promoter_definition_methylation_tables = list.files("promoter_definition_methylation_tables", full.names = T, pattern = "_methylation_table.tsv.gz")
-names(promoter_definition_methylation_tables) = gsub("_definition_methylation_table.tsv.gz", "", basename(promoter_definition_methylation_tables))
+promoter_definition_methylation_table_files = list.files("promoter_definition_methylation_tables", full.names = T, pattern = "_methylation_table.tsv.gz")
+names(promoter_definition_methylation_table_files) = gsub("_definition_methylation_table.tsv.gz", "", basename(promoter_definition_methylation_table_files))
 
 # Read in tables as a list and save
-promoter_definition_methylation_tables = lapply(promoter_definition_methylation_tables, function(x)
-  data.frame(data.table::fread(x)))
-for(definitiom in names(promoter_definition_methylation_tables)){
-  row.names(promoter_definition_methylation_tables[[definition]]) = cage_transcripts
-}
+promoter_definition_methylation_tables = lapply(promoter_definition_methylation_table_files, function(x)
+  data.frame(data.table::fread(x), row.names = 1))
 
 # Save list of promoter methylation tables
 saveRDS(promoter_definition_methylation_tables, "promoter_definition_methylation_tables/promoter_definition_methylation_tables.rds")

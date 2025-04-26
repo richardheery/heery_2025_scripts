@@ -7,9 +7,6 @@
 # D: Noushmehr -1500-1500 bp. From Identification of a CpG Island Methylator Phenotype that Defines a Distinct Subgroup of Glioma; Cancer Cell. 2010
 # E: Cao = -4500-500 bp. From Multi-faceted epigenetic dysregulation of gene expression promotes esophageal squamous cell carcinoma; Nature Communications. 2020
 
-# Load required packages
-library(ggplot2)
-
 # Make a data.frame with various promoter definitions ordered from smallest to biggest
 promoter_definition_df = 
   data.frame(
@@ -23,7 +20,7 @@ promoter_definition_df$definition = factor(promoter_definition_df$definition, le
 saveRDS(promoter_definition_df, "promoter_definition_df.rds")
 
 # Get TSS sites for protein-coding transcripts
-pcg_transcript_tss_range = readRDS("../genomes/cage_supported_gencode_tss.rds")
+pcg_transcript_tss_range = readRDS("../auxillary_data/cage_supported_gencode_tss.rds")
 
 # Create a list of promoters using the promoter definitions in promoter_definition_df
 # Seems that TSS shold be considered 1
