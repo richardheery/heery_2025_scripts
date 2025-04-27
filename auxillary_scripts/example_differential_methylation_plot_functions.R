@@ -2,7 +2,7 @@
 plot_promoter_methylation_change = function(transcript){
   
   # Get gene name from transcript
-  gene = gencode_tss_gr$gene_name[gencode_tss_gr$transcript_id == transcript]
+  gene = gencode_tss_gr$gene_name[gencode_tss_gr$ID == transcript]
   
   # Get differential methylation results for transcript
   transcript_results = dplyr::filter(promoter_diff_meth_results_df, transcript_id == transcript)
@@ -28,10 +28,10 @@ plot_promoter_methylation_change = function(transcript){
 plot_cpg_methylation_change = function(transcript, title = NULL){
   
   # Get gene name from transcript
-  gene = gencode_tss_gr$gene_name[gencode_tss_gr$transcript_id == transcript]
+  gene = gencode_tss_gr$gene_name[gencode_tss_gr$ID == transcript]
   
   # Get TSS of transcript
-  tss_gr = gencode_tss_gr[gencode_tss_gr$transcript_id == transcript]
+  tss_gr = gencode_tss_gr[gencode_tss_gr$ID == transcript]
   
   # Get methylation values of all CpG values within +/- 5 KB of the TSS
   transcript_methylation = methodical::extractGRangesMethSiteValues(cpgea_meth_rse, promoters(tss_gr, 5000, 5001))

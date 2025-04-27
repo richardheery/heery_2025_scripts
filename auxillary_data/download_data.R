@@ -13,7 +13,6 @@ download_meth_dataset(dataset = "tcga_450k_array_hg19", "methylation_data/")
 download_meth_dataset(dataset = "roadmap_wgbs_hg38", "methylation_data/")
 
 # Download transcript counts for CPGEA and MCRPC 
-dir.create("rnaseq_data")
 cpgea_transcript_counts_path = download_rnaseq_dataset(dataset = "cpgea_wgbs_hg38")
 mcrpc_transcript_counts_path = download_rnaseq_dataset(dataset = "mcrpc_wgbs_hg38")
 

@@ -7,14 +7,15 @@ library(ggpubr)
 library(doParallel)
 library(cowplot)
 library(methodical)
+source("../auxillary_scripts/correlate_functions.R")
 
 # Get paths to all promoter methylation definition tables. 
 promoter_definition_methylation_tables = readRDS("promoter_definition_methylation_tables/promoter_definition_methylation_tables.rds")
 
 # Get kallisto output for protein-coding genes subset for normal tumour samples 
-kallisto_deseq2_normalized_counts_pcg = data.frame(data.table::fread("../auxillary_data/rnaseq_data/cpgea_kallisto_deseq2_normalized_counts_pcg.tsv.gz"), row.names = 1)
-kallisto_deseq2_normalized_counts_pcg_normal = dplyr::select(kallisto_deseq2_normalized_counts_pcg, starts_with("N"))
-kallisto_deseq2_normalized_counts_pcg_tumour = dplyr::select(kallisto_deseq2_normalized_counts_pcg, starts_with("T"))
+cpgea_normalized_counts = data.frame(data.table::fread("../auxillary_data/cpgea_normalized_kallisto_pcg_counts.tsv.gz"), row.names = 1)
+cpgea_normalized_counts_normal = dplyr::select(cpgea_normalized_counts, starts_with("N"))
+cpgea_normalized_counts_tumour = dplyr::select(cpgea_normalized_counts, starts_with("T"))
 
 # Create a directory for promoter methylation-transcription correlation results
 dir.create("promoter_definition_transcript_correlation_tables")
@@ -23,7 +24,7 @@ dir.create("promoter_definition_transcript_correlation_tables")
 system.time({for(definition in names(promoter_definition_methylation_tables)){
   methylation_table = promoter_definition_methylation_tables[[definition]]
   feature_matches_df = data.frame(cluster = row.names(methylation_table), row.names(methylation_table))
-  correlation_results = correlateR:::cor_tables(table1 = methylation_table, table2 = kallisto_deseq2_normalized_counts_pcg_normal, 
+  correlation_results = cor_tables(table1 = methylation_table, table2 = cpgea_normalized_counts_normal, 
     feature_matches = feature_matches_df, calc_significance = T)
   data.table::fwrite(correlation_results, 
     paste0("promoter_definition_transcript_correlation_tables/", definition, "_definition_normal_sample_correlations.tsv.gz"), 
@@ -34,18 +35,7 @@ system.time({for(definition in names(promoter_definition_methylation_tables)){
 system.time({for(definition in names(promoter_definition_methylation_tables)){
   methylation_table = promoter_definition_methylation_tables[[definition]]
   feature_matches_df = data.frame(cluster = row.names(methylation_table), row.names(methylation_table))
-  correlation_results = correlateR:::cor_tables(table1 = methylation_table, table2 = kallisto_deseq2_normalized_counts_pcg_tumour, 
-    feature_matches = feature_matches_df, calc_significance = T)
-  data.table::fwrite(correlation_results, 
-    paste0("promoter_definition_transcript_correlation_tables/", definition, "_definition_tumour_sample_correlations.tsv.gz"), 
-    sep = "\t", row.names = F, quote = F)
-}})
-
-# Calculate correlation values between promoter methylation transcript expression for different promoter definitions in metastases samples. Took 50 minutes. 
-system.time({for(definition in names(promoter_definition_methylation_tables)){
-  methylation_table = promoter_definition_methylation_tables[[definition]]
-  feature_matches_df = data.frame(cluster = row.names(methylation_table), row.names(methylation_table))
-  correlation_results = correlateR:::cor_tables(table1 = methylation_table, table2 = kallisto_deseq2_normalized_counts_pcg_tumour, 
+  correlation_results = cor_tables(table1 = methylation_table, table2 = cpgea_normalized_counts_tumour, 
     feature_matches = feature_matches_df, calc_significance = T)
   data.table::fwrite(correlation_results, 
     paste0("promoter_definition_transcript_correlation_tables/", definition, "_definition_tumour_sample_correlations.tsv.gz"), 
@@ -116,7 +106,7 @@ normal_correlation_proportions_barplot = customize_ggplot_theme(normal_correlati
 
 # Combine normal plots and save
 combined_normal_correlation_plots = ggarrange(plotlist = list(normal_sample_all_correlations_violin_plots, normal_correlation_proportions_barplot),
-  labels = c("D", "E"))
+  labels = c("3D", "E"))
 ggsave(plot = combined_normal_correlation_plots, filename = "../figures/figureD_and_E.pdf", width = 20.57, height = 12.17)
 
 ### Repeat for tumour samples
@@ -179,5 +169,4 @@ tumour_correlation_proportions_barplot = customize_ggplot_theme(tumour_correlati
 # Combine tumour plots and save
 combined_tumour_plots = ggarrange(plotlist = list(tumour_sample_all_correlations_violin_plots, tumour_correlation_proportions_barplot),
   labels = c("A", "B"))
-ggsave(plot = combined_tumour_plots, filename = "../final_plots/supp_figure7.pdf", width = 20.57, height = 12.17)
-
+ggsave(plot = combined_tumour_plots, filename = "../figures/supp_figure7.pdf", width = 20.57, height = 12.17)

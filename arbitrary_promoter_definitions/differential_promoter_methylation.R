@@ -79,7 +79,7 @@ meth_change_proportions_barplot
 ### Create plots showing differential methylation results for example transcripts
 
 # Get TSS GRanges
-gencode_tss_gr = readRDS("../auxillary_data/cage_supported_gencode_tss.rds")
+gencode_tss_gr = readRDS("../auxillary_data/pc_transcripts_tss_gr.rds")
 
 # Create a data.frame with the coordinates of the different promoter definitions
 promoter_definition_df = readRDS("promoter_definition_df.rds")
@@ -102,18 +102,16 @@ promoter_diff_meth_results_df$significance = sig_sym(promoter_diff_meth_results_
 promoter_definition_methylation_df = tidyr::pivot_wider(select(promoter_diff_meth_results_df, definition, transcript_id, meth_diff), names_from = definition, values_from = meth_diff)
 promoter_definition_methylation_df = tibble::column_to_rownames(promoter_definition_methylation_df, "transcript_id")
 
-# Make plots of CpG methylation change and promoter definition differential methylation for FLT1 and SLC5A8
-flt1_cpg_meth_change_plot = plot_cpg_methylation_change(transcript = "ENST00000282397", 
-  title = expression("Distance to" ~ italic("FLT1") ~ "TSS (bp)"))
-slc5a8_cpg_meth_change_plot = plot_cpg_methylation_change(transcript = "ENST00000536262", 
-  title = expression("Distance to" ~ italic("SLC5A8") ~ "TSS (bp)"))
-flt1_promoters_plot = plot_promoter_methylation_change("ENST00000282397")
-slc5a8_promoters_plot = plot_promoter_methylation_change("ENST00000536262")
+# Make plots of CpG methylation change and promoter definition differential methylation for FLT1 and POLR2H
+flt1_cpg_meth_change_plot = plot_cpg_methylation_change(transcript = "ENST00000282397", title = NULL)
+flt1_promoters_plot = plot_promoter_methylation_change(transcript = "ENST00000282397")
+polr2h_cpg_meth_change_plot = plot_cpg_methylation_change(transcript = "ENST00000443489", title = NULL)
+polr2h_promoters_plot = plot_promoter_methylation_change("ENST00000443489")
 
 # Combine plots into a single figure along with promoter definition plot and save
 promoters_and_examples_plot_list = list(promoter_region_plot, NULL, 
   flt1_cpg_meth_change_plot, flt1_promoters_plot,
-  slc5a8_cpg_meth_change_plot, slc5a8_promoters_plot)
+  polr2h_cpg_meth_change_plot, polr2h_promoters_plot)
 promoters_and_examples_plot = plot_grid(plotlist = promoters_and_examples_plot_list, nrow = 3, ncol = 2, align = "hv", 
   rel_heights = c(1.5, 5.5, 5.5), rel_widths = c(3.5, 1), labels = c("A", "", "B", "", "C", ""))
 promoters_and_examples_plot
@@ -125,6 +123,7 @@ meth_change_proportions_barplot = plot_grid(plotlist = list(meth_change_proporti
 figure2_plot_list = list(promoters_and_examples_plot, meth_change_proportions_barplot)
 figure2_plot = plot_grid(plotlist = figure2_plot_list, nrow = 2, ncol = 1,
   rel_heights = c(0.65, 0.35))
+figure2_plot
 ggsave(plot = figure2_plot, filename = "../figures/figure2.pdf", 
   width = 20.57, height = 32.72, device = cairo_pdf)
 
