@@ -36,6 +36,7 @@ genome_annotation_chr1_list = split(genome_annotation_chr1, genome_annotation_ch
 system.time({region_mean_coverage = lapply(genome_annotation_chr1_list, function(x)
   colMeans(assay(subsetByOverlaps(combined_rse, x), 2)))})
 region_mean_coverage_df = data.frame(t(data.frame(region_mean_coverage)))
+saveRDS(region_mean_coverage_df, "region_mean_coverage_df.rds")
 
 # CPGEA samples appear to have very low coverage of CpG islands (1X), predicted promoters (3X), CTCF binding sites (7x) 
 # compared to MCRPC samples where coverage is still less than other regions but comparable
