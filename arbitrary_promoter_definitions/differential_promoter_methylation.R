@@ -84,7 +84,7 @@ gencode_tss_gr = readRDS("../auxillary_data/pc_transcripts_tss_gr.rds")
 # Create a data.frame with the coordinates of the different promoter definitions
 promoter_definition_df = readRDS("promoter_definition_df.rds")
 
-# Make promoter coordinates plot
+# Make promoter coordinates plot and save it
 promoter_region_plot = ggplot(promoter_definition_df, 
   aes(xmin = -upstream, xmax = downstream, x = NULL, y = definition,  group = definition)) + 
   geom_linerange(linewidth = 12, position = position_dodge(0.06), color = RColorBrewer::brewer.pal(9, "YlGn")[c(2, 4, 6, 8, 9)]) +
@@ -94,6 +94,7 @@ promoter_region_plot = ggplot(promoter_definition_df,
   scale_x_continuous(limits = c(-5000, 5000), breaks = seq(-4000, 4000, 2000), expand = c(0.005, 0.005), labels = scales::comma) +
   geom_vline(xintercept = 0, linetype = "dashed") +
   labs(x = NULL, y = "Promoter\nDefinition")
+ saveRDS(promoter_region_plot, "promoter_region_plot.rds")
 
 # Add significance symbol to promoter_diff_meth_results
 promoter_diff_meth_results_df$significance = sig_sym(promoter_diff_meth_results_df$fdr, symbol = "\u204E")
@@ -108,7 +109,7 @@ flt1_promoters_plot = plot_promoter_methylation_change(transcript = "ENST0000028
 polr2h_cpg_meth_change_plot = plot_cpg_methylation_change(transcript = "ENST00000443489", title = NULL)
 polr2h_promoters_plot = plot_promoter_methylation_change("ENST00000443489")
 
-# Combine plots into a single figure along with promoter definition plot and save
+# Combine plots into a single figure along with promoter definition plot
 promoters_and_examples_plot_list = list(promoter_region_plot, NULL, 
   flt1_cpg_meth_change_plot, flt1_promoters_plot,
   polr2h_cpg_meth_change_plot, polr2h_promoters_plot)

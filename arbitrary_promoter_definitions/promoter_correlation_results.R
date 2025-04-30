@@ -8,9 +8,10 @@ library(doParallel)
 library(cowplot)
 library(methodical)
 source("../auxillary_scripts/correlate_functions.R")
+source("../auxillary_scripts/mcrpc_example_differential_methylation_plot_functions.R")
 
-# Get paths to all promoter methylation definition tables. 
-promoter_definition_methylation_tables = readRDS("promoter_definition_methylation_tables/promoter_definition_methylation_tables.rds")
+# Get paths to all CPGEA promoter methylation definition tables
+cpgea_promoter_definition_methylation_tables = readRDS("promoter_definition_methylation_tables/cpgea_promoter_definition_methylation_tables.rds")
 
 # Get kallisto output for protein-coding genes subset for normal tumour samples 
 cpgea_normalized_counts = data.frame(data.table::fread("../auxillary_data/cpgea_normalized_kallisto_pcg_counts.tsv.gz"), row.names = 1)
@@ -21,8 +22,8 @@ cpgea_normalized_counts_tumour = dplyr::select(cpgea_normalized_counts, starts_w
 dir.create("promoter_definition_transcript_correlation_tables")
 
 # Calculate correlation values between promoter methylation transcript expression for different promoter definitions in normal samples. Took 50 minutes. 
-system.time({for(definition in names(promoter_definition_methylation_tables)){
-  methylation_table = promoter_definition_methylation_tables[[definition]]
+system.time({for(definition in names(cpgea_promoter_definition_methylation_tables)){
+  methylation_table = cpgea_promoter_definition_methylation_tables[[definition]]
   feature_matches_df = data.frame(cluster = row.names(methylation_table), row.names(methylation_table))
   correlation_results = cor_tables(table1 = methylation_table, table2 = cpgea_normalized_counts_normal, 
     feature_matches = feature_matches_df, calc_significance = T)
@@ -32,13 +33,30 @@ system.time({for(definition in names(promoter_definition_methylation_tables)){
 }})
 
 # Calculate correlation values between promoter methylation transcript expression for different promoter definitions in tumour samples. Took 50 minutes. 
-system.time({for(definition in names(promoter_definition_methylation_tables)){
-  methylation_table = promoter_definition_methylation_tables[[definition]]
+system.time({for(definition in names(cpgea_promoter_definition_methylation_tables)){
+  methylation_table = cpgea_promoter_definition_methylation_tables[[definition]]
   feature_matches_df = data.frame(cluster = row.names(methylation_table), row.names(methylation_table))
   correlation_results = cor_tables(table1 = methylation_table, table2 = cpgea_normalized_counts_tumour, 
     feature_matches = feature_matches_df, calc_significance = T)
   data.table::fwrite(correlation_results, 
     paste0("promoter_definition_transcript_correlation_tables/", definition, "_definition_tumour_sample_correlations.tsv.gz"), 
+    sep = "\t", row.names = F, quote = F)
+}})
+
+# Get paths to all MCRPC promoter methylation definition tables
+mcrpc_promoter_definition_methylation_tables = readRDS("mcrpc_promoter_definition_methylation_tables/mcrpc_promoter_definition_methylation_tables.rds")
+
+# Get kallisto output for protein-coding genes for MCRPC samples
+mcrpc_normalized_counts = data.frame(data.table::fread("../auxillary_data/mcrpc_normalized_kallisto_pcg_counts.tsv.gz"), row.names = 1)
+
+# Calculate correlation values between promoter methylation transcript expression for different promoter definitions in metastases samples. Took 50 minutes. 
+system.time({for(definition in names(mcrpc_promoter_definition_methylation_tables)){
+  methylation_table = mcrpc_promoter_definition_methylation_tables[[definition]]
+  feature_matches_df = data.frame(cluster = row.names(methylation_table), row.names(methylation_table))
+  correlation_results = cor_tables(table1 = methylation_table, table2 = mcrpc_normalized_counts, 
+  feature_matches = feature_matches_df, calc_significance = T)
+  data.table::fwrite(correlation_results, 
+    paste0("promoter_definition_transcript_correlation_tables/", definition, "_definition_metastases_sample_correlations.tsv.gz"), 
     sep = "\t", row.names = F, quote = F)
 }})
 
@@ -106,8 +124,7 @@ normal_correlation_proportions_barplot = customize_ggplot_theme(normal_correlati
 
 # Combine normal plots and save
 combined_normal_correlation_plots = ggarrange(plotlist = list(normal_sample_all_correlations_violin_plots, normal_correlation_proportions_barplot),
-  labels = c("3D", "E"))
-ggsave(plot = combined_normal_correlation_plots, filename = "../figures/figureD_and_E.pdf", width = 20.57, height = 12.17)
+  labels = c("D", "E"))
 
 ### Repeat for tumour samples
 
@@ -170,3 +187,55 @@ tumour_correlation_proportions_barplot = customize_ggplot_theme(tumour_correlati
 combined_tumour_plots = ggarrange(plotlist = list(tumour_sample_all_correlations_violin_plots, tumour_correlation_proportions_barplot),
   labels = c("A", "B"))
 ggsave(plot = combined_tumour_plots, filename = "../figures/supp_figure7.pdf", width = 20.57, height = 12.17)
+
+### Repeat for metastases samples
+
+# Get lists of all metastases correlation tables
+metastases_sample_correlation_tables = list.files("promoter_definition_transcript_correlation_tables", pattern = "metastases_sample_correlations", full.names = T)
+names(metastases_sample_correlation_tables) = LETTERS[1:5]
+
+# Create a list with all metastases sample correlation tables
+metastases_sample_correlation_list = lapply(metastases_sample_correlation_tables, function(x) 
+  setNames(data.table::fread(x, select = 1:5), c("table1_feature", "table2_feature", "cor", "p_value", "q_value")))
+
+# Combine the list into a single table
+metastases_sample_correlation_tables_combined = bind_rows(metastases_sample_correlation_list, .id = "definition")
+metastases_sample_correlation_tables_combined$definition = 
+  factor(metastases_sample_correlation_tables_combined$definition, levels = LETTERS[1:5])
+
+# Remove correlations where q_value is NA
+mcrpc_sample_correlation_tables_combined = filter(metastases_sample_correlation_tables_combined, !is.na(q_value))
+mcrpc_sample_correlation_tables_combined$significance = sig_sym(mcrpc_sample_correlation_tables_combined$q_value)
+
+### Make example plots for MCRPC samples
+
+# Load MCRPC correlation results
+mcrpc_correlation_results = readRDS("../finding_tmrs/mcrpc_whole_gene_body_correlations.rds")
+
+# Load location of TSS sites
+tss_gr = readRDS("../auxillary_data/cage_supported_gencode_tss.rds")
+
+# Create plots of the promoter correlation values for FOXD1 and PACSIN3 using the ENST00000615637 and ENST00000298838 transcripts
+foxd1_promoter_cor_plot = plot_promoter_correlations(transcript = "ENST00000615637", title = "*FOXD1* Promoter Methylation-<br>Transcription Correlation")
+pacsin3_promoter_cor_plot = plot_promoter_correlations(transcript = "ENST00000298838", title = "*PACSIN3* Promoter Methylation-<br>Transcription Correlation")
+
+# Create plots of the individual CpG correlation values for FOXD1 and PACSIN3 using the ENST00000615637 and ENST00000298838 transcripts
+foxd1_cpg_cor_plot = plot_cpg_cor_values_transcript(transcript = "ENST00000615637", xlabel = "Distance to *FOXD1* TSS (bp)")
+pacsin3_cpg_cor_plot = plot_cpg_cor_values_transcript(transcript = "ENST00000298838", xlabel = "Distance to *PACSIN3* TSS (bp)")
+
+# Load promoter coordinates plot
+promoter_region_plot = readRDS("promoter_region_plot.rds")
+
+# Combine plots into a single figure along with promoter definition plot and save
+promoters_and_examples_plot_list = list(promoter_region_plot, NULL, 
+  foxd1_cpg_cor_plot, foxd1_promoter_cor_plot,
+  pacsin3_cpg_cor_plot, pacsin3_promoter_cor_plot)
+promoters_and_examples_plot = plot_grid(plotlist = promoters_and_examples_plot_list, nrow = 3, ncol = 2, align = "hv", 
+  rel_heights = c(1.5, 6, 6), rel_widths = c(3.5, 1), labels = c("A", "", "B", "", "C", ""))
+
+# Add barplot to complete plot
+figure3_plot_list = list(promoters_and_examples_plot, combined_normal_correlation_plots)
+figure3_plot = plot_grid(plotlist = figure3_plot_list, nrow = 2, ncol = 1, rel_heights = c(13.5, 5.5))
+figure3_plot
+ggsave(plot = figure3_plot, filename = "../figures/figure3.pdf", 
+  width = 20.57, height = 30.07, device = cairo_pdf)

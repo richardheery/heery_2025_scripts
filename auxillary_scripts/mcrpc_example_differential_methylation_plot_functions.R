@@ -3,7 +3,7 @@ plot_cpg_cor_values_transcript = function(transcript, title = NULL,
   ylabel = "DNA Methylation-Transcription Correlation", xlabel = "Distance of CpG to TSS (bp)"){
   
   plot = methodical::plotMethSiteCorCoefs(meth_site_cor_values = mcrpc_correlation_results[[transcript]],
-    reference_tss = plyranges::filter(tss_gr, transcript_id == transcript),
+    reference_tss = tss_gr[tss_gr$ID == transcript],
     xlabel = xlabel,  ylabel = ylabel, title = title) +
     geom_hline(yintercept = 0, linetype = "dashed") +
     scale_x_continuous(limits = c(-5000, 5000), breaks = seq(-4000, 4000, 2000), exp= c(0.005, 0.005), labels = scales::comma) +
@@ -14,7 +14,7 @@ plot_cpg_cor_values_transcript = function(transcript, title = NULL,
 }
 
 # Create a function which will plot the promoter correlations for a specified transcript
-plot_promoter_correlations = function(transcript_id, title = "Promoter\nMethylation Change"){
+plot_promoter_correlations = function(transcript_id, title = "Promoter-Methylation\nTranscription Correlation"){
   
   # Get differential methylation results for transcript
   transcript_results = dplyr::filter(mcrpc_sample_correlation_tables_combined, table1_feature == transcript_id)
