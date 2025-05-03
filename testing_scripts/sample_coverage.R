@@ -47,9 +47,13 @@ rowMeans(select(region_mean_coverage_df, starts_with("T")))
 
 # Calculate the mean methylation for each region class in all samples. Took 21 minutes.
 system.time({region_mean_methylation = lapply(genome_annotation_chr1_list, function(x)
-  colMeans(assay(subsetByOverlaps(combined_rse, x), 1), na.rm = T))})
+  colMeans(assay(subsetByOverlaps(combined_rse, x), 1)))})
 region_mean_methylation_df = data.frame(t(data.frame(region_mean_methylation)))
 
 rowMeans(select(region_mean_methylation_df, starts_with("D")))
 rowMeans(select(region_mean_methylation_df, starts_with("N")))
 rowMeans(select(region_mean_methylation_df, starts_with("T")))
+
+# Count the number of missing values in different regions
+system.time({region_mean_nas_per_cpg = sapply(genome_annotation_chr1_list, function(x)
+  sum(is.na(assay(subsetByOverlaps(combined_rse, x), 2)))/nrow(subsetByOverlaps(combined_rse, x)))})
