@@ -15,9 +15,9 @@ transcripts_gr = methodical:::expand_granges(transcripts_gr, 5000, 5000)
 cpgea_meth_rse = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylation_data/cpgea_meth_rse")
 cpgea_kallisto_deseq2_counts = data.frame(data.table::fread("../auxillary_data/cpgea_normalized_kallisto_pcg_counts.tsv.gz"), row.names = 1)
 
-# Filter for CpGs with at least 10 reads covering them
+# Mask CpGs with less than 10 reads covering them
 assay(cpgea_meth_rse, 2)[is.na(assay(cpgea_meth_rse, 2))] = 0
-assay(cpgea_meth_rse, 2)[assay(cpgea_meth_rse, 2) < 10] = 0
+assay(cpgea_meth_rse, 1)[assay(cpgea_meth_rse, 2) < 10] = NA
 
 # Get CPGEA normal and tumour samples
 normal_samples = grep("N", intersect(names(cpgea_kallisto_deseq2_counts), colnames(cpgea_meth_rse)), value = T)
@@ -44,9 +44,9 @@ saveRDS(transcript_meth_cors_cpgea_tumour_samples_5kb, "new_meth_transcript_cors
 mcrpc_meth_rse = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylation_data/mcrpc_meth_rse/")
 mcrpc_kallisto_deseq2_counts = data.frame(data.table::fread("../auxillary_data/rnaseq_data/mcrpc_transcript_counts.tsv.gz"), row.names = 1)
 
-# Filter for CpGs with at least 10 reads covering them
+# Mask CpGs with less than 10 reads covering them
 assay(mcrpc_meth_rse, 2)[is.na(assay(mcrpc_meth_rse, 2))] = 0
-assay(mcrpc_meth_rse, 2)[assay(mcrpc_meth_rse, 2) < 10] = 0
+assay(mcrpc_meth_rse, 1)[assay(mcrpc_meth_rse, 2) < 10] = NA
 
 # Get mcrpc normal and tumour samples
 common_mcrpc_samples = intersect(names(mcrpc_kallisto_deseq2_counts), colnames(mcrpc_meth_rse))
