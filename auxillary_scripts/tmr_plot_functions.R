@@ -144,7 +144,7 @@ bin_relative_tmrs = function(tmrs, width, transcripts_subset = NULL){
   
   # Convert the clusters to relative ranges
   relative_ranges_tmrs = 
-    methodicalFinal::relative_ranges(tmrs, reference_positions = GRanges(tmrs$tss_location))
+    methodical:::rangesRelativeToTSS(tmrs, tss_gr = GRanges(tmrs$tss_location))
 
   # Bin the relative ranges into 500 bp windows
   binned_ranges_tmrs = bin_relative_ranges(relative_ranges = relative_ranges_tmrs, bin_start = -width, 
