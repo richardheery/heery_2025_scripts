@@ -24,7 +24,8 @@ normal_samples = grep("N", intersect(names(cpgea_kallisto_deseq2_counts), colnam
 tumour_samples = grep("T", intersect(names(cpgea_kallisto_deseq2_counts), colnames(cpgea_meth_rse)), value = T)
 
 # Create a bpparm object
-bpparam = BiocParallel::MulticoreParam(workers = 5) 
+#bpparam = BiocParallel::SnowParam(workers = 4, type = "SOCK")
+bpparam = BiocParallel::SerialParam()
 
 # Calculate methylation-transcription correlations for CPGEA normal samples. Took 34 minutes hours with 5 cores.  
 system.time({transcript_meth_cors_cpgea_normal_samples_5kb = calculateMethSiteTranscriptCors(meth_rse = cpgea_meth_rse, 
