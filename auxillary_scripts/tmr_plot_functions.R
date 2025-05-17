@@ -15,7 +15,7 @@ expand_transcripts = function (grl, expand_upstream = 0, expand_downstream = 0){
     upstream_section$region = paste0("TSS-", label)
     
     # Update TSS temp
-    tss_temp =  adjust_gr(tss_temp, upstream = expansion)
+    tss_temp =  expand_granges(tss_temp, upstream = expansion)
     
     # Return The upstream section
     upstream_section$transcript_id = names(upstream_section)
@@ -37,7 +37,7 @@ expand_transcripts = function (grl, expand_upstream = 0, expand_downstream = 0){
     downstream_section$region = paste0("TES+", label)
     
     # Update TES temp
-    tes_temp = resize(adjust_gr(gr = tes_temp, upstream = 0, downstream = expansion), width = 1, fix = "end")
+    tes_temp = resize(expand_granges(tes_temp, upstream = 0, downstream = expansion), width = 1, fix = "end")
     
     # Return The downstream section
     downstream_section$transcript_id = names(downstream_section)
