@@ -3,6 +3,7 @@
 # Load required packages
 library(methodical)
 library(dplyr)
+library(doParallel)
 source("../auxillary_scripts/plotting_functions.R")
 
 # Get methylation values from CPGEA 
@@ -11,29 +12,15 @@ cpgea_rse = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylati
 # Get genome annotation for hg38
 genome_annotation = readRDS("../auxillary_data/complete_regulatory_annotation.rds")
 
-# Shorten names of exons and introns
-genome_annotation$region_type[genome_annotation$region_type == "exon"] = "Exons"
-genome_annotation$region_type[genome_annotation$region_type == "intron"] = "Introns"
-
-# Remove " Region" from cluster_annotation$region_type
-genome_annotation$region_type = gsub(" Region", "", genome_annotation$region_type)
-
-# Remove lncRNA regions
-genome_annotation = genome_annotation[genome_annotation$region_type != "lncRNA"]
-
-# Remove repeats and TSS from annotation
-genome_annotation = plyranges::filter(genome_annotation, !region_type %in% 
-    c("Alu", "CR1", "DNA Transposon", "L1", "L2", "LTR", "Low Complexity", "MIR", "SVA", "Satellite", "Simple Repeat", "TSS", "rRNA"))
-
 # Get repeat ranges for hg38
-repeat_ranges = readRDS("../auxillary_data/genomic_annotation/repeatmasker_granges_ucsc.rds")
+repeat_ranges = readRDS("../auxillary_data/repeatmasker_granges_ucsc.rds")
 
 # Remove any features which overlap repeats
 genome_annotation = subsetByOverlaps(genome_annotation, repeat_ranges, invert = T, ignore.strand = T)
 
 # Get a list of TMRs
-tmr_list = readRDS("../finding_tmrs/tmr_list.rds")
-tmr_list = lapply(tmr_list, function(x) setNames(x, NULL))
+tmr_list = readRDS("../finding_tmrs/tmr_granges/tmr_list.rds")
+tmr_list = lapply(tmr_list, unname)
 
 # Rename TMRs
 names(tmr_list) = c("Normal Prostate TMRs -", "Normal Prostate TMRs +", "Prostate Tumour TMRs -", 
@@ -54,14 +41,14 @@ genome_annotation_with_tmrs = c(genome_annotation, tmrs_gr)
 gc()
 
 # Create a BPPARAM object
-bpparam = BiocParallel::SerialParam()
+bpparam = BiocParallel::MulticoreParam(5)
 
 # Get methylation values for genomic features and TMRs. Took 3 minutes with 10 cores. 
 system.time({genomic_features_with_tmrs_methylation = 
   summarizeRegionMethylation(meth_rse = cpgea_rse, genomic_regions = genome_annotation_with_tmrs, BPPARAM = bpparam)})
 
 # Save table
-data.table::fwrite(genomic_features_with_tmrs_methylation, "tmr_methylation/genomic_features_with_tmrs_methylation.tsv.gz")
+data.table::fwrite(genomic_features_with_tmrs_methylation, "genomic_features_with_tmrs_methylation.tsv.gz")
 
 # Add region type from genomic_features_with_tmrs
 genomic_features_with_tmrs_methylation$region_type = genome_annotation_with_tmrs$region_type
@@ -80,11 +67,11 @@ genomic_feature_mean_methylation_change = lapply(genomic_features_with_tmrs_meth
 genomic_feature_mean_methylation_change = data.frame(
   region_type = rep(names(genomic_feature_mean_methylation_change), times = lengths(genomic_feature_mean_methylation_change)),
   values = unlist(genomic_feature_mean_methylation_change), row.names = NULL)
-data.table::fwrite(genomic_feature_mean_methylation_change, "tmr_methylation/genomic_feature_mean_methylation_change.tsv.gz")
+data.table::fwrite(genomic_feature_mean_methylation_change, "genomic_feature_mean_methylation_change.tsv.gz")
 
 # Create a vector with the selected genomic features to plot
-selected_genomic_features = c("CpG Island", "Predicted Promoter", "Predicted Enhancer", "Open Chromatin", 
-  "CTCF BS", "TF BS", "Exons", "Introns")
+selected_genomic_features = c("CpG Islands", "Predicted Promoter", "Predicted Enhancer", "Open Chromatin", 
+  "CTCF BS", "Exon", "Intron")
 
 # Filter genomic_feature_mean_methylation_change for selected features
 genomic_feature_mean_methylation_change_selected = filter(genomic_feature_mean_methylation_change, 
@@ -97,7 +84,7 @@ genomic_feature_mean_methylation_change_selected$region_type =
 
 # Set colours for genomic features
 feature_colors = rev(c(rep(colour_list$purple_and_gold_light, each = 1), 
-  rev(RColorBrewer::brewer.pal(8, name = "BrBG"))))
+  rev(RColorBrewer::brewer.pal(7, name = "BrBG"))))
 
 # Randomly select 250 regions for each region type for plotting points
 set.seed(123)
@@ -129,7 +116,7 @@ genome_annotation_with_tmrs_list = split(genome_annotation_with_tmrs, genome_ann
 
 # Remove TMRs from normal prostate and prostate tumour samples and rename metastasis TMRs
 genome_annotation_with_tmrs_list = genome_annotation_with_tmrs_list[grep("Normal|Tumour", names(genome_annotation_with_tmrs_list), invert = T, value = T)]
-names(genome_annotation_with_tmrs_list)[c(8, 9)] = c("Positive TMRs", "Negative TMRs")
+names(genome_annotation_with_tmrs_list)[c(11, 12)] = c("Positive TMRs", "Negative TMRs")
 
 # Get the mean methylation of CpGs for each genomic region. Took 10 minutes with 1 core locally
 system.time({tcga_wgbs_genomic_region_mean_meth = foreach(region = names(genome_annotation_with_tmrs_list), .packages = "methodical") %do% {
@@ -146,6 +133,8 @@ system.time({tcga_wgbs_genomic_region_mean_meth = foreach(region = names(genome_
 names(tcga_wgbs_genomic_region_mean_meth) = names(genome_annotation_with_tmrs_list)
 tcga_wgbs_genomic_region_mean_meth = dplyr::bind_rows(tcga_wgbs_genomic_region_mean_meth, .id = "region_type")
 data.table::fwrite(tcga_wgbs_genomic_region_mean_meth, "tcga_wgbs_genomic_region_mean_meth_mcrpc_tmrs.tsv.gz")
+tcga_wgbs_genomic_region_mean_meth = data.table::fread("tcga_wgbs_genomic_region_mean_meth_mcrpc_tmrs.tsv.gz")
+tcga_wgbs_genomic_region_mean_meth = tibble::column_to_rownames(tcga_wgbs_genomic_region_mean_meth, "region_type")
 
 # Identify submitters with matching tumour and normal samples. There is one submitter each for BLCA, BRCA, COAD, LUAD, LUSC, READ, STAD and UCEC
 normal_samples = rownames(colData(tcga_wgbs_meth_rse))[which(colData(tcga_wgbs_meth_rse)$sample_type == 11)]
@@ -168,7 +157,12 @@ tcga_wgbs_genomic_region_mean_meth_change$cancer = colData(tcga_wgbs_meth_rse)[g
 tcga_wgbs_genomic_region_mean_meth_change$shape = 
   ifelse(grepl("TMR", tcga_wgbs_genomic_region_mean_meth_change$region_type), 23, 21)
 
+# Filter tcga_wgbs_genomic_region_mean_meth_change  for selected regions
+tcga_wgbs_genomic_region_mean_meth_change = filter(tcga_wgbs_genomic_region_mean_meth_change, 
+  region_type %in% c("Negative TMRs", "Positive TMRs", selected_genomic_features))
+
 # Convert region_type to a factor with levels in correct order
+genomic_feature_plot_order = c("Negative TMRs", "Positive TMRs", selected_genomic_features)
 tcga_wgbs_genomic_region_mean_meth_change$region_type = 
   factor(tcga_wgbs_genomic_region_mean_meth_change$region_type, levels = genomic_feature_plot_order)
 
@@ -190,7 +184,7 @@ tcga_wgbs_feature_meth_change_plot =
   customize_ggplot_theme(tcga_wgbs_feature_meth_change_plot, 
   ylab = "Cancer Type", xlab = "Mean Methylation Change", color_title = "Genomic Feature",
   show_legend = T, scale_x = scale_x_continuous(limits = c(-0.15, 0.3), expand = c(0, 0)), 
-  fill_colors = feature_colors, colors = feature_colors, legend_text_size = 16) + 
+  fill_colors = rev(feature_colors), colors = rev(feature_colors), legend_text_size = 16) + 
   theme(strip.background = element_blank(), strip.text = element_blank(),
     panel.grid.major.y = element_blank()) +
     guides(fill = "none")

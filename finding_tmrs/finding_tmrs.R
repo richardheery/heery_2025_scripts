@@ -35,26 +35,35 @@ system.time({mcrpc_tmrs = findTMRs(correlation_list = mcrpc_cor_results,
 saveRDS(mcrpc_tmrs, "tmr_granges/mcrpc_tmrs.rds")
 rm(mcrpc_cor_results); gc()
 
+tmr_list = list(
+  cpgea_normal_tmrs_negative = cpgea_normal_tmrs[cpgea_normal_tmrs$direction == "Negative"],
+  cpgea_normal_tmrs_positive = cpgea_normal_tmrs[cpgea_normal_tmrs$direction == "Positive"],
+  cpgea_tumour_tmrs_negative = cpgea_tumour_tmrs[cpgea_tumour_tmrs$direction == "Negative"],
+  cpgea_tumour_tmrs_positive = cpgea_tumour_tmrs[cpgea_tumour_tmrs$direction == "Positive"],
+  mcrpc_tmrs_negative = mcrpc_tmrs[mcrpc_tmrs$direction == "Negative"],
+  mcrpc_tmrs_positive = mcrpc_tmrs[mcrpc_tmrs$direction == "Positive"]
+)
+
 # Get repeat ranges for hg38
 repeat_ranges = readRDS("~/genomes/repetitive_sequences/repeatmasker/repeatmasker_granges_ucsc.rds")
 
 # Save all TMRs without repeats
-cpgea_normal_tmrs_no_repeats = subsetByOverlaps(cpgea_normal_tmrs, repeat_ranges, invert = T)
-cpgea_tumour_tmrs_no_repeats = subsetByOverlaps(cpgea_tumour_tmrs, repeat_ranges, invert = T)
-mcrpc_tmrs_no_repeats = subsetByOverlaps(mcrpc_tmrs, repeat_ranges, invert = T)
-
-# Create a list of TMRs which do not overlap repeats and save
-tmr_list_no_repeats = list(
-  cpgea_normal_tmrs_negative = cpgea_normal_tmrs_no_repeats[cpgea_normal_tmrs_no_repeats$direction == "Negative"],
-  cpgea_normal_tmrs_positive = cpgea_normal_tmrs_no_repeats[cpgea_normal_tmrs_no_repeats$direction == "Positive"],
-  cpgea_tumour_tmrs_negative = cpgea_tumour_tmrs_no_repeats[cpgea_tumour_tmrs_no_repeats$direction == "Negative"],
-  cpgea_tumour_tmrs_positive = cpgea_tumour_tmrs_no_repeats[cpgea_tumour_tmrs_no_repeats$direction == "Positive"],
-  mcrpc_tmrs_negative = mcrpc_tmrs_no_repeats[mcrpc_tmrs_no_repeats$direction == "Negative"],
-  mcrpc_tmrs_positive = mcrpc_tmrs_no_repeats[mcrpc_tmrs_no_repeats$direction == "Positive"]
-)
-saveRDS(tmr_list_no_repeats, "tmr_list.rds")
+cpgea_normal_tmrs = subsetByOverlaps(cpgea_normal_tmrs, repeat_ranges, invert = T)
+cpgea_tumour_tmrs = subsetByOverlaps(cpgea_tumour_tmrs, repeat_ranges, invert = T)
+mcrpc_tmrs = subsetByOverlaps(mcrpc_tmrs, repeat_ranges, invert = T)
 
 # Save CAGE-supported TMRs without repeats
-saveRDS(cpgea_normal_tmrs_no_repeats, "gene_body_tmrs/cpgea_normal_tmrs.rds")
-saveRDS(cpgea_tumour_tmrs_no_repeats, "gene_body_tmrs/cpgea_tumour_tmrs.rds")
-saveRDS(mcrpc_tmrs_no_repeats, "gene_body_tmrs/mcrpc_tmrs.rds")
+saveRDS(cpgea_normal_tmrs, "tmr_granges/cpgea_normal_tmrs.rds")
+saveRDS(cpgea_tumour_tmrs, "tmr_granges/cpgea_tumour_tmrs.rds")
+saveRDS(mcrpc_tmrs, "tmr_granges/mcrpc_tmrs.rds")
+
+# Create a list of TMRs which do not overlap repeats and save
+tmr_list = list(
+  cpgea_normal_tmrs_negative = cpgea_normal_tmrs[cpgea_normal_tmrs$direction == "Negative"],
+  cpgea_normal_tmrs_positive = cpgea_normal_tmrs[cpgea_normal_tmrs$direction == "Positive"],
+  cpgea_tumour_tmrs_negative = cpgea_tumour_tmrs[cpgea_tumour_tmrs$direction == "Negative"],
+  cpgea_tumour_tmrs_positive = cpgea_tumour_tmrs[cpgea_tumour_tmrs$direction == "Positive"],
+  mcrpc_tmrs_negative = mcrpc_tmrs[mcrpc_tmrs$direction == "Negative"],
+  mcrpc_tmrs_positive = mcrpc_tmrs[mcrpc_tmrs$direction == "Positive"]
+)
+saveRDS(tmr_list, "tmr_granges/tmr_list.rds")

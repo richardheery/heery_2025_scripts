@@ -6,10 +6,10 @@ library(doParallel)
 source("../auxillary_scripts/plotting_functions.R")
 
 # Load the names of MANE transcripts
-mane_transcripts = readRDS("../auxillary_data/genomic_annotation/mane_transcript_ids.rds")
+mane_transcripts = readRDS("../auxillary_data/mane_pc_transcript_ids.rds")
 
 # Get CPGEA tumour TMRs and filter for those associated with MANE transcripts
-mcrpc_tmrs = readRDS("../finding_tmrs/mcrpc_tmrs.rds")
+mcrpc_tmrs = readRDS("../finding_tmrs/tmr_granges/mcrpc_tmrs.rds")
 mcrpc_tmrs = mcrpc_tmrs[mcrpc_tmrs$ID %in% mane_transcripts]
 mcrpc_tmrs$gene_id = gsub("\\.[0-9]", "", mcrpc_tmrs$gene_id)
 
@@ -21,13 +21,13 @@ deseq2_normalized_count_files = list.files("../auxillary_data/rnaseq_data/tcga_d
 names(deseq2_normalized_count_files) = gsub("_deseq_normalized_counts.tsv.gz", "", basename(deseq2_normalized_count_files))
 
 # Load meth RSE for TCGA hg19
-tcga_meth_rse_hg19 = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylation_data/tcga_meth_array_hg19")
-hg19tohg38_chain = rtracklayer::import.chain("../auxillary_data/genomic_annotation/hg19ToHg38.over.chain")
+tcga_meth_rse_hg19 = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylation_data/tcga_450k_array_hg19")
+hg19tohg38_chain = rtracklayer::import.chain("../auxillary_data/hg19ToHg38.over.chain")
 hg38_cpgs = extractMethSitesFromGenome("BSgenome.Hsapiens.UCSC.hg38")
 tcga_meth_rse_hg38 = liftoverMethRSE(tcga_meth_rse_hg19, chain = hg19tohg38_chain, permitted_target_regions = hg38_cpgs)
 
-cl = parallel::makeCluster(11)
-doParallel::registerDoParallel(cl, 11)
+cl = parallel::makeCluster(3)
+doParallel::registerDoParallel(cl, 3)
 
 # Calculate correlation for CPGEA tumour TMRs in tumour samples for each project
 # Took 22 minutes with 3 cores
