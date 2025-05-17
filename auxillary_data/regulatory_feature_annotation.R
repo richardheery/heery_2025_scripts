@@ -37,6 +37,10 @@ all_biomart_features_granges_hg38 = unlist(GRangesList(biomart_regulatory_featur
 # Rename feature_type_description as region_type
 mcols(all_biomart_features_granges_hg38) = data.frame(region_type = all_biomart_features_granges_hg38$feature_type_description)
 
+# Capitalize regulatory feature names and remove word region from them and rename CTCF Transcription Factor CTCF BS
+all_biomart_features_granges_hg38$region_type = stringr::str_to_title(gsub(" region", "", all_biomart_features_granges_hg38$region_type))
+all_biomart_features_granges_hg38$region_type[all_biomart_features_granges_hg38$region_type == "Ctcf Transcription Factor"] = "CTCF BS"
+
 ### Download CpG islands from UCSC
 cpg_island_annotation = build_annotations(genome = "hg38", annotations = "hg38_cpgs")
 
@@ -51,6 +55,14 @@ cpg_island_annotation$type = dplyr::recode_factor(cpg_island_annotation$type,
 # Rename type as region type and remove other metadata columns
 mcols(cpg_island_annotation) = data.frame(region_type = cpg_island_annotation$type)
 
+# Load list with locations of exons and introns and convert into a GRanges
+pc_transcripts_exons_and_introns_grl = readRDS("pc_transcripts_exons_and_introns_grl.rds")
+pc_transcripts_exons_and_introns_gr = unlist(GRangesList(pc_transcripts_exons_and_introns_grl))
+
+# Rename type as region type and remove other metadata columns
+mcols(pc_transcripts_exons_and_introns_gr) = data.frame(region_type = mcols(pc_transcripts_exons_and_introns_gr)$region)
+pc_transcripts_exons_and_introns_gr$region_type = stringr::str_to_title(pc_transcripts_exons_and_introns_gr$region_type)
+
 # Combine all_biomart_features_granges_hg38 and cpg_island_annotation and save
-complete_regulatory_annotation = sort(c(cpg_island_annotation, all_biomart_features_granges_hg38))
+complete_regulatory_annotation = unname(sort(c(pc_transcripts_exons_and_introns_gr, cpg_island_annotation, all_biomart_features_granges_hg38)))
 saveRDS(complete_regulatory_annotation, "complete_regulatory_annotation.rds")

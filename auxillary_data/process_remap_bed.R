@@ -32,5 +32,5 @@ system.time({prostate_remap_table = filter(remap_table, grepl(prostate_grep_patt
 prostate_remap_table$tf = gsub(":.*", "", prostate_remap_table$name)
 
 # Convert prostate_remap_table to a GRanges object and save
-prostate_remap_table = makeGRangesFromDataFrame(prostate_remap_table, starts.in.df.are.0based = T, keep.extra.columns = T)
+prostate_remap_gr = makeGRangesFromDataFrame(prostate_remap_table, starts.in.df.are.0based = T, keep.extra.columns = T)
 saveRDS(prostate_remap_gr, "prostate_remap_gr.rds")

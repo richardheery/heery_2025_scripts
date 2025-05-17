@@ -5,31 +5,40 @@ library(GenomicRanges)
 library(methodical)
 library(doParallel)
 source("../auxillary_scripts/enrichment_tests.R")
+source("../auxillary_scripts/plotting_functions.R")
 
 # Get a GRanges for transcripts and expand
 transcripts_gr = readRDS("../auxillary_data/pc_transcripts_gr.rds")
 transcripts_gr = methodical::expand_granges(transcripts_gr, 5000, 5000)
 
 # Get all CpG sites as a GRanges object
-cpg_sites = readRDS("~/genomes/cpgs/all_cpg_sites_hg38.rds")
+cpg_sites = readRDS("../auxillary_data/all_cpg_sites_hg38.rds")
 
 # Get all TSS cpgs
 tss_cpgs = subsetByOverlaps(cpg_sites, transcripts_gr)
 rm(cpg_sites); gc()
 
-# Get a list with all TMR types
-tmr_list = readRDS("../finding_tmrs/tmr_list.rds")
+# Load TMRs filtered for CAGE supported TSS not overlapping repeats
+cpgea_normal_tmrs = readRDS("../finding_tmrs/tmr_granges/cpgea_normal_tmrs.rds")
+cpgea_tumour_tmrs = readRDS("../finding_tmrs/tmr_granges/cpgea_tumour_tmrs.rds")
+mcrpc_tmrs = readRDS("../finding_tmrs/tmr_granges/mcrpc_tmrs.rds")
+
+# Get list of TMRs
+tmr_list = list(
+  "Normal Prostate" = cpgea_normal_tmrs,
+  "Prostate Tumours" = cpgea_tumour_tmrs,
+  "Prostate Metastases" = mcrpc_tmrs)
 
 # For each TMR group get the TSS regions for the corresponding transcripts
 tmr_list_transcript_regions = lapply(tmr_list, function(x) transcripts_gr[transcripts_gr$ID %in% x$ID])
 
-# Load a list of GRanges for TR binding sites for prostate from ReMap
-remap_prostate_gr_list = readRDS("../auxillary_data/genomic_annotation/remap_prostate_gr_list.rds")
-all_binding_sites_gr = unlist(GRangesList(remap_prostate_gr_list))
+# Load a list of GRanges for TR binding sites for prostate from ReMap and split into a list
+remap_prostate_gr = readRDS("../auxillary_data/prostate_remap_gr.rds")
+remap_prostate_gr_list = split(remap_prostate_gr, remap_prostate_gr_list$tf)
 
 # Calculate enrichment of TMRs for all binding sites
 system.time({all_tf_enrichment_results = lapply(tmr_list, function(x) query_subject_cpg_overlap_test(query_regions = x, 
-  subject_regions = all_binding_sites_gr, control_regions = transcripts_gr, background_cpgs = tss_cpgs, alternative = "greater"))})
+  subject_regions = remap_prostate_gr, control_regions = transcripts_gr, background_cpgs = tss_cpgs, alternative = "greater"))})
 all_tf_enrichment_results = bind_rows(all_tf_enrichment_results, .id = "tmr_group")
 write.table(all_tf_enrichment_results, "all_tf_enrichment_results.tsv", sep = "\t", quote = F)
 

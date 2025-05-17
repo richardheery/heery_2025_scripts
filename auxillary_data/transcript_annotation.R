@@ -134,6 +134,6 @@ exons_and_introns_gr = makeGRangesFromDataFrame(exons_and_introns_df, keep.extra
 # Convert exons_and_introns into a GRangesList
 exons_and_introns_grl = GRangesList(split(exons_and_introns_gr, exons_and_introns_gr$transcript_id))
 
-# Subset for protein-coding transcripts and lncRNAs
-pc_exons_and_introns_grl = exons_and_introns_grl[pc_transcripts_gr$ID]
+# Subset for CAGE supported portein-coding genes
+pc_exons_and_introns_grl = exons_and_introns_grl[cage_supported_gencode_tss$ID]
 saveRDS(pc_exons_and_introns_grl, "pc_transcripts_exons_and_introns_grl.rds")

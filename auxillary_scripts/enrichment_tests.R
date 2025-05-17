@@ -102,13 +102,13 @@ query_subject_cpg_overlap_test = function(query_regions, subject_regions, contro
   match.arg(arg = alternative, choices = c("two.sided", "greater", "less"), several.ok = F)
   
   # Find CpG sites overlapping the query, subject and control regions
-  query_regions_cpgs = subsetByOverlaps(background_cpgs, query_regions, ignore.strand = T)$name
-  subject_regions_cpgs = subsetByOverlaps(background_cpgs, subject_regions, ignore.strand = T)$name
-  control_regions_cpgs = subsetByOverlaps(background_cpgs, control_regions, ignore.strand = T)$name
+  query_regions_cpgs = subsetByOverlaps(background_cpgs, query_regions, ignore.strand = T)
+  subject_regions_cpgs = subsetByOverlaps(background_cpgs, subject_regions, ignore.strand = T)
+  control_regions_cpgs = subsetByOverlaps(background_cpgs, control_regions, ignore.strand = T)
   
   # Find the number of CpGs in common between query_regions and subject_regions and control_regions and subject_regions
-  query_subject_overlap = intersect(query_regions_cpgs, subject_regions_cpgs)
-  control_subject_overlap = intersect(control_regions_cpgs, subject_regions_cpgs)
+  query_subject_overlap = intersect(as.character(query_regions_cpgs), as.character(subject_regions_cpgs))
+  control_subject_overlap = intersect(as.character(control_regions_cpgs), as.character(subject_regions_cpgs))
   
   # Perform a chi-square test
   chi_test_result = prop.test(
