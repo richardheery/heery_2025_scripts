@@ -4,6 +4,6 @@ Note figure2 now uses POLR2H instead of SLC5A8:
 	slc5a8_cpg_meth_change_plot = plot_cpg_methylation_change(transcript = "ENST00000536262", title = NULL)
 	slc5a8_promoters_plot = plot_promoter_methylation_change("ENST00000536262")
 	
-figure5 = finding_tmrs/tmr_distribution_plots.R. 1. How to make example plots (FOXD1 and PACSIN3). 2. find bin_relative_ranges() function
-figure6 = tmr_annotation/tmr_annotation.R 1. 1. Get prostate chromatin states BED. 2. Run tmr_transcription_factor_overlaps.R with tmr_list separating negative and positive TMRs
-figure7 = tmr_methlation/tmr_methlation_vs_genomic_features.R. 1. Get tcga_deseq_normalized_counts
+figure5 = finding_tmrs/tmr_distribution_plots.R. 1. How to make example plots (FOXD1 and PACSIN3). 
+figure6 = tmr_annotation/tmr_annotation.R 1. 1.Run tmr_transcription_factor_overlaps.R with tmr_list separating negative and positive TMRs
+figure7 = tmr_methlation/tmr_methlation_vs_genomic_features.R. 
