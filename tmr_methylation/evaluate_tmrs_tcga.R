@@ -17,7 +17,7 @@ mcrpc_tmrs$gene_id = gsub("\\.[0-9]", "", mcrpc_tmrs$gene_id)
 mcrpc_tmrs$tmr_name = paste0(mcrpc_tmrs$gene_id, gsub(".*_tmr_", "_tmr_", mcrpc_tmrs$tmr_name))
 
 # Get paths to DESeq2 normalized count tables for TCGA projects
-deseq2_normalized_count_files = list.files("../auxillary_data/rnaseq_data/tcga_deseq_normalized_counts", full.names = T)
+deseq2_normalized_count_files = list.files("../auxillary_data/rnaseq_data/tcga_rna_seq/deseq_normalized_counts", full.names = T)
 names(deseq2_normalized_count_files) = gsub("_deseq_normalized_counts.tsv.gz", "", basename(deseq2_normalized_count_files))
 
 # Load meth RSE for TCGA hg19
@@ -26,12 +26,9 @@ hg19tohg38_chain = rtracklayer::import.chain("../auxillary_data/hg19ToHg38.over.
 hg38_cpgs = extractMethSitesFromGenome("BSgenome.Hsapiens.UCSC.hg38")
 tcga_meth_rse_hg38 = liftoverMethRSE(tcga_meth_rse_hg19, chain = hg19tohg38_chain, permitted_target_regions = hg38_cpgs)
 
-cl = parallel::makeCluster(3)
-doParallel::registerDoParallel(cl, 3)
-
 # Calculate correlation for CPGEA tumour TMRs in tumour samples for each project
-# Took 22 minutes with 3 cores
-system.time({mcrpc_tmr_tcga_tumour_cors = foreach(project = names(deseq2_normalized_count_files))  %dopar% { 
+# Took 10 minutes with 4 cores
+system.time({mcrpc_tmr_tcga_tumour_cors = foreach(project = names(deseq2_normalized_count_files))  %do% { 
   
   # Print name of current project
   message(paste("Starting", project))
@@ -57,7 +54,7 @@ system.time({mcrpc_tmr_tcga_tumour_cors = foreach(project = names(deseq2_normali
     transcript_expression_table = counts_table, genomic_regions = mcrpc_tmrs, 
     genomic_region_names = mcrpc_tmrs$tmr_name, 
     genomic_region_transcripts = mcrpc_tmrs$gene_id, samples_subset = common_tumour_samples, 
-    cor_method = "s", BPPARAM = BiocParallel::MulticoreParam(workers = 20))
+    cor_method = "s", BPPARAM = BiocParallel::MulticoreParam(workers = 4))
   
   # Return results
   cor_results

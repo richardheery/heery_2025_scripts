@@ -8,9 +8,9 @@ source("../auxillary_scripts/granges_functions.R")
 source("../auxillary_scripts/plotting_functions.R")
 
 # Load TMRs filtered for CAGE supported TSS not overlapping repeats
-cpgea_normal_tmrs = readRDS("tmr_granges/cpgea_normal_tmrs.rds")
-cpgea_tumour_tmrs = readRDS("tmr_granges/cpgea_tumour_tmrs.rds")
-mcrpc_tmrs = readRDS("tmr_granges/mcrpc_tmrs.rds")
+cpgea_normal_tmrs = readRDS("../finding_tmrs/tmr_granges/cpgea_normal_tmrs.rds")
+cpgea_tumour_tmrs = readRDS("../finding_tmrs/tmr_granges/cpgea_tumour_tmrs.rds")
+mcrpc_tmrs = readRDS("../finding_tmrs/tmr_granges/mcrpc_tmrs.rds")
 
 # Get list of TMRs
 tmr_list = list(
@@ -132,13 +132,6 @@ tmr_state_overlaps_summary = summarise(group_by(tmr_state_overlaps, tmr_group, d
 
 # Normalize count by MB covered by the chromatin state
 tmr_state_overlaps_summary$normalized_count = tmr_state_overlaps_summary$count/chromatin_state_widths[tmr_state_overlaps_summary$chromatin_state]*1e6
-
-# Add data set name to tmr_state_overlaps_summary
-tmr_state_overlaps_summary$tmr_group = with(tmr_state_overlaps_summary, case_when(
-  tmr_group == "cpgea_normal_tmrs" ~ "Normal Prostate",
-  tmr_group == "cpgea_tumour_tmrs" ~ "Prostate Tumours",
-  tmr_group == "mcrpc_tmrs" ~ "Prostate Metastases"
-))
 
 # Put tmr_group in right order
 tmr_state_overlaps_summary$tmr_group = factor(tmr_state_overlaps_summary$tmr_group, 

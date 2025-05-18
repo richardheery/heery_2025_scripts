@@ -7,14 +7,14 @@
 
 # Load requireed packages
 library(rtracklayer)
-library(genomeTools)
+library(genomicTools)
 
 # Download data
 system("wget https://download.cncb.ac.cn/OMIX/OMIX237/OMIX237-64-02.zip")
 system("unzip OMIX237-64-02.zip")
 
 # Get liftover chain
-hg19_to_hg38_chain = rtracklayer::import.chain("../genomes/hg19ToHg38.over.chain")
+hg19_to_hg38_chain = rtracklayer::import.chain("hg19ToHg38.over.chain")
 
 # Create GRanges objects for the 18 model, keep only standard chromosomes and sort. Has 623,664 ranges. No ranges overlap. 
 prostate_18_states = import.bed("prostate_18states_joint_model_dense.bed")
@@ -26,7 +26,7 @@ prostate_18_states = GRanges(prostate_18_states)
 mcols(prostate_18_states)[c("score", "itemRgb", "thick")] = NULL
 
 # Liftover from hg19 to hg38, 620,543 ranges which do not overlap. Median width 1,000 bp.
-system.time({prostate_18_states_hg38 = genomeTools::liftover_granges(genomic_regions = prostate_18_states, chain = hg19_to_hg38_chain)})
+system.time({prostate_18_states_hg38 = genomicTools::liftover_granges(genomic_regions = prostate_18_states, chain = hg19_to_hg38_chain)})
 prostate_18_states_hg38$score = NULL
 
 # Convert chromatin state name to a factor and put in the desired order
