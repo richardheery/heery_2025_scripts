@@ -5,8 +5,10 @@ library(GenomicRanges)
 library(dplyr)
 library(ggpubr)
 library(doParallel)
+library(methodical)
 source("../auxillary_scripts/plotting_functions.R")
 source("../auxillary_scripts/tmr_plot_functions.R")
+source("../auxillary_scripts/granges_functions.R")
 
 # Load TMRs filtered for CAGE supported TSS not overlapping repeats
 cpgea_normal_tmrs = readRDS("tmr_granges/cpgea_normal_tmrs.rds")
@@ -34,6 +36,7 @@ tmrs_5kb_bins_plot = customize_ggplot_theme(plot = tmrs_5kb_bins_plot, base_them
   facet = "dataset", facet_nrow = 1, facet_scales = "fixed", facet_labels = c("Normal Prostate", "Prostate Tumours", "Prostate Metastases"), strip_text_size = 18) + 
   theme(strip.background = element_blank(), plot.margin = margin(b = 0.5, unit = "cm")) +
   geom_vline(xintercept = 0, linetype = "dotted")
+tmrs_5kb_bins_plot
 ggsave(plot = tmrs_5kb_bins_plot , "../figures/supplementary_figure8A.pdf",  width = 27, height = 9)
 
 ### Make introns and exons plots
@@ -84,7 +87,8 @@ combined_tumour_metastases_plots
 ggsave(plot = combined_tumour_metastases_plots, "../figures/supplementary_figure10.pdf", width = 32, height = 18)
 
 # Make distribution plots just for MANE transcripts
-mane_transcripts = readRDS("../auxillary_data/genomic_annotation/mane_transcript_ids.rds")
+mane_transcripts = readRDS("../auxillary_data/mane_pc_transcript_ids.rds")
 cpgea_normal_mane_tmrs_introns_exons_plot_normalized = plot_tmr_regions(tmrs = cpgea_normal_tmrs[cpgea_normal_tmrs$ID %in% mane_transcripts], 
   transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs for MANE Transcripts in Normal Prostate", normalize = T)
+cpgea_normal_mane_tmrs_introns_exons_plot_normalized
 ggsave(plot = cpgea_normal_mane_tmrs_introns_exons_plot_normalized, "../figures/supplementary_figure12.pdf", width = 16, height = 9)
