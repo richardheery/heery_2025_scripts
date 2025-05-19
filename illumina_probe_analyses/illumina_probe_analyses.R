@@ -87,7 +87,7 @@ saveRDS(cpgea_normal_prop_sig_bins_plot, "cpgea_normal_prop_sig_bins_plot.rds")
 ### Create significance plots for tumour samples
 
 # Get correlation results for CPGEA tumour samples and combine them and add column for bin
-cpgea_tumour_correlations = readRDS("../calculating_meth_transcript_correlations/cpgea_tumour_whole_gene_body_correlations.rds")[cage_supported_tss]
+cpgea_tumour_correlations = readRDS("../finding_tmrs/cpgea_tumour_whole_gene_body_correlations.rds")
 cpgea_tumour_correlations = dplyr::bind_rows(cpgea_tumour_correlations, .id = "transcript_id")
 cpgea_tumour_correlations$bin = plyr::round_any(cpgea_tumour_correlations$distance_to_tss, 500)
 
@@ -113,7 +113,7 @@ saveRDS(cpgea_tumour_prop_sig_bins_plot, "cpgea_tumour_prop_sig_bins_plot.rds")
 ### Create plots for MCRPC metastasis samples
 
 # Get correlation results for CPGEA normal samples and combine them and add column for bin
-mcrpc_correlations = readRDS("../calculating_meth_transcript_correlations/mcrpc_whole_gene_body_correlations.rds")[cage_supported_tss]
+mcrpc_correlations = readRDS("../finding_tmrs/mcrpc_whole_gene_body_correlations.rds")
 mcrpc_correlations = dplyr::bind_rows(mcrpc_correlations, .id = "transcript_id")
 mcrpc_correlations$bin = plyr::round_any(mcrpc_correlations$distance_to_tss, 500)
 
@@ -144,7 +144,7 @@ cpgea_wgbs_hg38 = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/met
 mcrpc_wgbs_hg38 = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylation_data/mcrpc_meth_rse")
 
 # Load TSS and create TSS-proximal regions
-tss_gr = readRDS("../auxillary_data/pc_tss_gr.rds")
+tss_gr = readRDS("../auxillary_data/pc_transcripts_gr.rds")
 tss_proximal_regions = methodical::expand_granges(tss_gr, 5000, 5000)
 
 # Create 500 bp bins around TSS
