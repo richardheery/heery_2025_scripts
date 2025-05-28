@@ -43,7 +43,7 @@ genome_annotation_hg38 = readRDS("../auxillary_data/complete_regulatory_annotati
 # Remove CpG Islands
 genome_annotation_hg38 = genome_annotation_hg38[genome_annotation_hg38$region_type != "CpG Island"]
 
-# Remove " Region" from cluster_annotation$region_type
+# Remove " Region" from tmr_annotation$region_type
 genome_annotation_hg38$region_type = gsub(" region", "", genome_annotation_hg38$region_type)
 
 # Combine genome_annotation_hg38 and cpg_island_annotation
@@ -82,15 +82,15 @@ tmr_annotation_overlaps_summary$tmr_group = factor(tmr_annotation_overlaps_summa
   levels = c("Normal Prostate", "Prostate Tumours", "Prostate Metastases"))
 
 # Create a plot annotating TMRs and save
-cluster_genomic_feature_annotation_plot = ggplot(tmr_annotation_overlaps_summary, aes(x = tmr_group, y = normalized_count, fill = direction)) +
+tmr_genomic_feature_annotation_plot = ggplot(tmr_annotation_overlaps_summary, aes(x = tmr_group, y = normalized_count, fill = direction)) +
   geom_col(position = "dodge", colour = "black") 
-cluster_genomic_feature_annotation_plot = customize_ggplot_theme(cluster_genomic_feature_annotation_plot, title = NULL, 
+tmr_genomic_feature_annotation_plot = customize_ggplot_theme(tmr_genomic_feature_annotation_plot, title = NULL, 
   xlab = "Dataset", ylab = "Number of TMRs per MB", fill_title = "TMR Direction", fill_colors = colour_list$purple_and_gold_light, x_labels_angle = 55, colors = "black",
   facet = "annotation", facet_nrow = 1, facet_scales = "free_x", strip_text_size = 20, axis_text_size = 14, 
   legend_title_size = 24, legend_text_size = 20, legend_key_size = 1.5) + 
   theme(strip.background = element_blank(), plot.margin = margin(t = 0.5, unit = "cm")) +
   guides(linetype = guide_legend(override.aes = list(legend.text = element_text(size = 50))))
-cluster_genomic_feature_annotation_plot
+tmr_genomic_feature_annotation_plot
 
 ### Annotate chromatin states
 
@@ -138,18 +138,18 @@ tmr_state_overlaps_summary$tmr_group = factor(tmr_state_overlaps_summary$tmr_gro
   levels = c("Normal Prostate", "Prostate Tumours", "Prostate Metastases"))
 
 # Create a plot annotating TMRs and save
-cluster_chromatin_state_annotation_plot = ggplot(tmr_state_overlaps_summary, aes(x = tmr_group, y = normalized_count, fill = direction)) +
+tmr_chromatin_state_annotation_plot = ggplot(tmr_state_overlaps_summary, aes(x = tmr_group, y = normalized_count, fill = direction)) +
   geom_col(position = "dodge", colour = "black")
-cluster_chromatin_state_annotation_plot = customize_ggplot_theme(cluster_chromatin_state_annotation_plot, title = NULL, 
+tmr_chromatin_state_annotation_plot = customize_ggplot_theme(tmr_chromatin_state_annotation_plot, title = NULL, 
   xlab = "Dataset", ylab = "Number of TMRs per MB", fill_title = "TMR Direction", fill_colors = colour_list$purple_and_gold_light, x_labels_angle = 55, colors = "black",
   facet = "chromatin_state", facet_nrow = 2, facet_scales = "free_x", strip_text_size = 17, axis_text_size = 16, axis_title_size = 24, legend_key_size = 1.5, 
   legend_title_size = 24, legend_text_size = 20) + 
   theme(strip.background = element_blank(), plot.margin = margin(t = 0.5, unit = "cm")) +
   guides(linetype = guide_legend(override.aes = list(legend.text = element_text(size = 50))))
-cluster_chromatin_state_annotation_plot
+tmr_chromatin_state_annotation_plot
 
 ### Combine The TMR distribution plots and TMR annotation plots 
-combined_annotation_plot = cluster_genomic_feature_annotation_plot / cluster_chromatin_state_annotation_plot +
+combined_annotation_plot = tmr_genomic_feature_annotation_plot / tmr_chromatin_state_annotation_plot +
   plot_layout(heights = c(1, 2), nrow = 2, ncol = 1) +
   plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 20))
 ggsave(plot = combined_annotation_plot, filename = "../figures/figure5A_and_B.pdf", width = 27, height = 27)

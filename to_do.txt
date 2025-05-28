@@ -7,3 +7,7 @@ Note figure2 now uses POLR2H instead of SLC5A8:
 figure5 = finding_tmrs/tmr_distribution_plots.R. 1. How to make example plots (FOXD1 and PACSIN3). 
 figure6 = tmr_annotation/tmr_annotation.R 1. 1.Run tmr_transcription_factor_overlaps.R with tmr_list separating negative and positive TMRs
 figure7 = tmr_methlation/tmr_methlation_vs_genomic_features.R. 
+
+Complete download of data in 10_download_data.R
+Replace genomicTools, plotR and methylTools with scripts in auxillary_scripts
+Tidy 24_tcga_probe_transcript_cors.R

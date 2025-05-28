@@ -23,21 +23,20 @@ assay(cpgea_meth_rse, 1)[assay(cpgea_meth_rse, 2) < 10] = NA
 normal_samples = grep("N", intersect(names(cpgea_kallisto_deseq2_counts), colnames(cpgea_meth_rse)), value = T)
 tumour_samples = grep("T", intersect(names(cpgea_kallisto_deseq2_counts), colnames(cpgea_meth_rse)), value = T)
 
-# Create a bpparm object
-#bpparam = BiocParallel::SnowParam(workers = 4, type = "SOCK")
-bpparam = BiocParallel::SerialParam()
+# Create a bpparam object
+bpparam = BiocParallel::SnowParam(workers = 5, type = "SOCK")
 
 # Calculate methylation-transcription correlations for CPGEA normal samples. Took 34 minutes hours with 5 cores.  
 system.time({transcript_meth_cors_cpgea_normal_samples_5kb = calculateMethSiteTranscriptCors(meth_rse = cpgea_meth_rse, 
   transcript_expression_table = cpgea_kallisto_deseq2_counts, samples_subset = normal_samples, tss_gr = tss_gr, tss_associated_gr = transcripts_gr, 
   cor_method = "spearman", min_number_complete_pairs = 30, BPPARAM = bpparam, add_distance_to_region = T)})
-saveRDS(transcript_meth_cors_cpgea_normal_samples_5kb, "new_meth_transcript_cors/cpgea_normal_whole_gene_body_correlations.rds")
+saveRDS(transcript_meth_cors_cpgea_normal_samples_5kb, "meth_transcript_cors/cpgea_normal_whole_gene_body_correlations.rds")
 
 # Calculate methylation-transcription correlations for CPGEA tumour samples. Took 42 minutes with 5 cores.  
 system.time({transcript_meth_cors_cpgea_tumour_samples_5kb = calculateMethSiteTranscriptCors(meth_rse = cpgea_meth_rse, 
   transcript_expression_table = cpgea_kallisto_deseq2_counts, samples_subset = tumour_samples, tss_gr = tss_gr, tss_associated_gr = transcripts_gr, 
   cor_method = "spearman", min_number_complete_pairs = 30, BPPARAM = bpparam, add_distance_to_region = T)})
-saveRDS(transcript_meth_cors_cpgea_tumour_samples_5kb, "new_meth_transcript_cors/cpgea_tumour_whole_gene_body_correlations.rds")
+saveRDS(transcript_meth_cors_cpgea_tumour_samples_5kb, "meth_transcript_cors/cpgea_tumour_whole_gene_body_correlations.rds")
 
 ### Calculate correlations for MCRPC
  
@@ -56,7 +55,7 @@ common_mcrpc_samples = intersect(names(mcrpc_kallisto_deseq2_counts), colnames(m
 system.time({transcript_meth_cors_mcrpc_samples_5kb = calculateMethSiteTranscriptCors(meth_rse = mcrpc_meth_rse, 
   transcript_expression_table = mcrpc_kallisto_deseq2_counts, samples_subset = common_mcrpc_samples, tss_gr = tss_gr, tss_associated_gr = transcripts_gr, 
   cor_method = "spearman", min_number_complete_pairs = 30, BPPARAM = bpparam, add_distance_to_region = T)})
-saveRDS(transcript_meth_cors_mcrpc_samples_5kb, "new_meth_transcript_cors/mcrpc_whole_gene_body_correlations.rds")
+saveRDS(transcript_meth_cors_mcrpc_samples_5kb, "meth_transcript_cors/mcrpc_whole_gene_body_correlations.rds")
 
 ### Repeat with 50 KB upstream and downstream
 
@@ -67,14 +66,14 @@ transcripts_gr_50kb = methodical:::expand_granges(transcripts_gr, 50000, 50000)
 system.time({transcript_meth_cors_cpgea_normal_samples_50kb = calculateMethSiteTranscriptCors(meth_rse = cpgea_meth_rse, 
   transcript_expression_table = cpgea_kallisto_deseq2_counts, samples_subset = normal_samples, tss_gr = tss_gr, tss_associated_gr = transcripts_gr_50kb, 
   cor_method = "spearman", min_number_complete_pairs = 30, BPPARAM = bpparam, add_distance_to_region = T)})
-saveRDS(transcript_meth_cors_cpgea_normal_samples_50kb, "new_meth_transcript_cors/cpgea_normal_whole_gene_body_correlations_50kb.rds")
+saveRDS(transcript_meth_cors_cpgea_normal_samples_50kb, "meth_transcript_cors/cpgea_normal_whole_gene_body_correlations_50kb.rds")
 rm(transcript_meth_cors_cpgea_normal_samples_50kb); gc()
 
 # Calculate methylation-transcription correlations for CPGEA tumour samples. Took 42 minutes with 5 cores.  
 system.time({transcript_meth_cors_cpgea_tumour_samples_50kb = calculateMethSiteTranscriptCors(meth_rse = cpgea_meth_rse, 
   transcript_expression_table = cpgea_kallisto_deseq2_counts, samples_subset = tumour_samples, tss_gr = tss_gr, tss_associated_gr = transcripts_gr_50kb, 
   cor_method = "spearman", min_number_complete_pairs = 30, BPPARAM = bpparam, add_distance_to_region = T)})
-saveRDS(transcript_meth_cors_cpgea_tumour_samples_50kb, "new_meth_transcript_cors/cpgea_tumour_whole_gene_body_correlations_50kb.rds")
+saveRDS(transcript_meth_cors_cpgea_tumour_samples_50kb, "meth_transcript_cors/cpgea_tumour_whole_gene_body_correlations_50kb.rds")
 rm(transcript_meth_cors_cpgea_tumour_samples_50kb); gc()
 
 ### Calculate correlations for MCRPC
@@ -90,6 +89,6 @@ common_mcrpc_samples = intersect(names(mcrpc_kallisto_deseq2_counts), colnames(m
 system.time({transcript_meth_cors_mcrpc_samples_50kb = calculateMethSiteTranscriptCors(meth_rse = mcrpc_meth_rse, 
   transcript_expression_table = mcrpc_kallisto_deseq2_counts, samples_subset = common_mcrpc_samples, tss_gr = tss_gr, tss_associated_gr = transcripts_gr_50kb, 
   cor_method = "spearman", min_number_complete_pairs = 30, BPPARAM = bpparam, add_distance_to_region = T)})
-saveRDS(transcript_meth_cors_mcrpc_samples_50kb, "new_meth_transcript_cors/mcrpc_whole_gene_body_correlations_50kb.rds")
+saveRDS(transcript_meth_cors_mcrpc_samples_50kb, "meth_transcript_cors/mcrpc_whole_gene_body_correlations_50kb.rds")
 rm(transcript_meth_cors_cpgea_tumour_samples_50kb); gc()
 ""
