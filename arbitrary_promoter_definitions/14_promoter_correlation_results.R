@@ -186,7 +186,7 @@ tumour_correlation_proportions_barplot = customize_ggplot_theme(tumour_correlati
 # Combine tumour plots and save
 combined_tumour_plots = ggarrange(plotlist = list(tumour_sample_all_correlations_violin_plots, tumour_correlation_proportions_barplot),
   labels = c("A", "B"))
-ggsave(plot = combined_tumour_plots, filename = "../figures/supp_figure7.pdf", width = 20.57, height = 12.17)
+ggsave(plot = combined_tumour_plots, filename = "../figures/supp_figure9.pdf", width = 20.57, height = 12.17)
 
 ### Repeat for metastases samples
 

@@ -1,0 +1,27 @@
+figure1 = Graphical abstract
+figure2 = 13_differential_promoter_methylation.R
+figure3 = 14_promoter_correlation_results.R
+figure4 = ? Methodical overview with TUBB6
+figure5 = ? How to make FOXD1 and PACSIN3 example plots + 19_tmr_annotation.R
+figure6 = 19_tmr_annotation.R + 20_tmr_transciption_factor_overlaps.R
+figure7 = 21_tmr_methylation_vs_genomic_features.R + 21_tmr_methylation_vs_genomic_features.R + 22_evaluate_tmrs_tcga.R
+figure8 = 23_illumina_probe_analyses.R
+
+supplementary_figure1 = ? Parameter selection
+supplementary_figure2 = ? TMR CpG content vs correlation plot
+supplementary_figur3 = ? Positive correlation distributions plot
+supplementary_figure4 = ? Overlap with repeats
+supplementary_figure5 = ? Distributions plot after removal of repeats
+supplementary_figure6 = ? Number of TMRs found with changing sample size
+supplementary_figure7 = 13_differential_promoter_methylation.R
+supplementary_figure8 = 13_differential_promoter_methylation.R
+supplementary_figure9 = 14_promoter_correlation_results.R
+supplementary_figure10 = 17_tmr_distribution_plots.R + 17.5_tmr_statistics.R + finding_tmrs/18_tmr_evaluation.R
+supplementary_figure11 = 17_tmr_distribution_plots.R
+supplementary_figure12 = ? Roadmap distribution plot
+supplementary_figure13 = 17_tmr_distribution_plots.R
+supplementary_figure14 = ? Roadmap TMR regulatory features and chromatin state
+supplementary_figure15 = 21.5_tmr_diff_methylation_and_pathway_overrepresentation.R
+supplementary_figure16 = ? TSG and oncogenes plot
+supplementary_figure17 = 23_illumina_probe_analyses.R
+supplementary_figure18 = 24_tcga_probe_transcript_cors.R
