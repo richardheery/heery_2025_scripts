@@ -167,19 +167,17 @@ hypermethylated_hypomethylated_intersections_plot =
   theme(plot.title = element_text(hjust = 0.5, size = 20), axis.title = element_text(size = 20), 
     axis.text = element_text(size = 14), legend.position = "None")
 ggsave(plot = hypermethylated_hypomethylated_intersections_plot, 
-  filename = "../figures//supp_figure5.pdf", height = 9, width = 9)
+  filename = "../figures//supp_figure7.pdf", height = 9, width = 9)
   
 ### Make upset diagrams for hypermethylated and hypomethylated promoters
 
-hypermethylated_promoters = lapply(hypermethylated_promoters, function(x) intersect(x, cage_transcripts))
-pdf(file = "../figures/hypermethylated_upset.pdf", width = 25, height = 14, bg = "white")
+pdf(file = "../figures/supp_figure8_top.pdf", width = 25, height = 14, bg = "white")
 UpSetR::upset(UpSetR::fromList(hypermethylated_promoters), sets.bar.color = RColorBrewer::brewer.pal(9, "YlGn")[c(2, 4, 6, 8, 9)], sets = rev(names(promoter_diff_meth_results)), keep.order = T,
   decreasing = c(T, T), nsets = length(hypermethylated_promoters), nintersects = NA, text.scale = c(3.5, rep(3, 5)),  mainbar.y.label = "Intersection Size\n\n")
 grid::grid.text("Overlaps of Significantly Hypermethylated Promoters\nfrom Different Promoter Definitions", x = 0.65, y=0.95, gp=grid::gpar(fontsize=30))
 dev.off()
 
-hypomethylated_promoters = lapply(hypomethylated_promoters, function(x) intersect(x, cage_transcripts))
-pdf(file = "../figures/hypomethylated_upset.pdf", width = 25, height = 14, bg = "white")
+pdf(file = "../figures/supp_figure8_bottom.pdf", width = 25, height = 14, bg = "white")
 UpSetR::upset(UpSetR::fromList(hypomethylated_promoters), sets.bar.color = RColorBrewer::brewer.pal(9, "YlGn")[c(2, 4, 6, 8, 9)], sets = rev(names(promoter_diff_meth_results)), keep.order = T,
   decreasing = c(T, T), nsets = length(hypomethylated_promoters), nintersects = NA, text.scale = c(3.5, rep(3, 5)),  mainbar.y.label = "Intersection Size\n\n", set_size.scale_max = 11000)
 grid::grid.text("Overlaps of Significantly Hypomethylated Promoters\nfrom Different Promoter Definitions", x = 0.65, y=0.95, gp=grid::gpar(fontsize=30))

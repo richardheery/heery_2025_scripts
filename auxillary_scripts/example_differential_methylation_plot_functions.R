@@ -11,7 +11,7 @@ plot_promoter_methylation_change = function(transcript){
   ggplot(transcript_results, 
     aes(y = meth_diff, x = definition, fill = definition, label = significance)) + 
     geom_col(color = "black") + 
-    geom_text(vjust = ifelse(transcript_results$meth_diff >= 0, "bottom", "top"), size = 8) + 
+    geom_text(nudge_y = ifelse(transcript_results$meth_diff >= 0, 0.01, -0.0025), size = 8) + 
     geom_hline(yintercept = 0) +
     scale_fill_manual(values = RColorBrewer::brewer.pal(9, "YlGn")[c(2, 4, 6, 8, 9)]) +
     theme_classic() +
