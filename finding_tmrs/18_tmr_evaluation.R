@@ -19,8 +19,6 @@ common_cpgea_tumour_samples = grep("T", intersect(names(cpgea_kallisto_deseq2_co
 common_mcrpc_samples = intersect(names(mcrpc_kallisto_deseq2_counts), colnames(mcrpc_meth_rse))
 
 # Get TMR GRanges
-# cpgea_normal_tmrs = rtracklayer::import.bed("tmr_bed_files/normal_prostate_tmrs.bed")
-# cpgea_normal_tmrs$ID = gsub("_.*", "", cpgea_normal_tmrs$tmr_name)
 cpgea_normal_tmrs = readRDS("tmr_granges/cpgea_normal_tmrs.rds")
 cpgea_tumour_tmrs = readRDS("tmr_granges/cpgea_tumour_tmrs.rds")
 mcrpc_tmrs = readRDS("tmr_granges/mcrpc_tmrs.rds")

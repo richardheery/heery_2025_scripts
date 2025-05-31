@@ -130,7 +130,7 @@ combined_normal_correlation_plots = ggarrange(plotlist = list(normal_sample_all_
 
 # Get lists of all tumour correlation tables
 tumour_sample_correlation_tables = list.files("promoter_definition_transcript_correlation_tables", pattern = "tumour_sample_correlations", full.names = T)
-names(tumour_sample_correlation_tables) = c("E", "A", "C", "D", "B")
+names(tumour_sample_correlation_tables) = LETTERS[1:5]
 
 # Create a list with all tumour sample correlation tables
 tumour_sample_correlation_list = lapply(tumour_sample_correlation_tables, function(x) 
@@ -183,11 +183,6 @@ tumour_correlation_proportions_barplot = customize_ggplot_theme(tumour_correlati
   xlab = "Promoter Definition", ylab = "Proportion of Significant Correlations", fill_colors = colour_list$purple_and_gold_light) +
   theme(legend.position = c(0.9, 0.9))
 
-# Combine tumour plots and save
-combined_tumour_plots = ggarrange(plotlist = list(tumour_sample_all_correlations_violin_plots, tumour_correlation_proportions_barplot),
-  labels = c("A", "B"))
-ggsave(plot = combined_tumour_plots, filename = "../figures/supp_figure9.pdf", width = 20.57, height = 12.17)
-
 ### Repeat for metastases samples
 
 # Get lists of all metastases correlation tables
@@ -204,13 +199,67 @@ metastases_sample_correlation_tables_combined$definition =
   factor(metastases_sample_correlation_tables_combined$definition, levels = LETTERS[1:5])
 
 # Remove correlations where q_value is NA
-mcrpc_sample_correlation_tables_combined = filter(metastases_sample_correlation_tables_combined, !is.na(q_value))
-mcrpc_sample_correlation_tables_combined$significance = sig_sym(mcrpc_sample_correlation_tables_combined$q_value)
+metastases_sample_correlation_tables_combined = filter(metastases_sample_correlation_tables_combined, !is.na(q_value))
+
+# Remove correlations where q_value is NA
+metastases_sample_correlation_tables_combined = filter(metastases_sample_correlation_tables_combined, !is.na(q_value))
+
+# Make violin plots for distributions of correlation values without clusters
+metastases_sample_all_correlations_violin_plots = 
+  ggplot(metastases_sample_correlation_tables_combined, aes(y = cor, x =  definition, fill = definition)) +
+    geom_violin() +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5, size = 24), axis.title = element_text(size = 20), 
+    axis.text = element_text(size = 14), strip.text.x = element_text(size = 14), legend.position = "None") +
+    scale_fill_manual(values = c(colour_list$nine_greens[c(2, 4, 6, 8, 9)])) + 
+    scale_y_continuous(limits = c(-1, 1), exp= c(0, 0), breaks = seq(-1, 1, 0.25)) +
+    labs(x = "Promoter Definition", y = "Promoter Methylation vs\nTranscription Correlation Values", 
+      title = NULL)
+
+# Denote whether correlations are positive, negative or uncorrelated
+metastases_sample_correlation_tables_combined = mutate(metastases_sample_correlation_tables_combined, 
+  correlation = case_when(
+    q_value < 0.05 & cor > 0 ~ "Positive",
+    q_value < 0.05 & cor < 0 ~ "Negative",
+    q_value > 0.05 ~ "Uncorrelated"
+    )
+  )
+
+# Convert correlation to a factor
+metastases_sample_correlation_tables_combined$correlation = factor(metastases_sample_correlation_tables_combined$correlation, levels = c("Negative", "Uncorrelated", "Positive"))
+
+# Get proportion of hypermethylated, hypomethylated unchanged promoters for each definition
+metastases_sample_correlation_tables_combined_summary = mutate(
+  summarize(group_by(metastases_sample_correlation_tables_combined, definition, correlation), count = n()),
+  freq = count/sum(count))
+
+# Create a barplot of proportion of hypermethylated, hypomethylated unchanged promoters for each definition
+metastases_correlation_proportions_barplot = ggplot(filter(metastases_sample_correlation_tables_combined_summary, correlation != "Uncorrelated"), aes(y = freq, x = definition, fill = correlation)) +
+ geom_col(position = "dodge", color  = "black")
+
+# Adjust theme of barplot save
+metastases_correlation_proportions_barplot = customize_ggplot_theme(metastases_correlation_proportions_barplot, title = NULL, 
+  xlab = "Promoter Definition", ylab = "Proportion of Significant Correlations", fill_colors = colour_list$purple_and_gold_light) +
+  theme(legend.position = c(0.9, 0.9))
+
+# Combine tumour plots and save
+combined_tumour_plots = ggarrange(plotlist = list(tumour_sample_all_correlations_violin_plots, tumour_correlation_proportions_barplot),
+  labels = c("A", "B"))
+
+# Combine metastases plots and save
+combined_tumour_and_metastases_plots = ggarrange(plotlist = list(tumour_sample_all_correlations_violin_plots, metastases_sample_all_correlations_violin_plots, 
+  tumour_correlation_proportions_barplot, metastases_correlation_proportions_barplot),
+  labels = c("A", "B", "C", "D"))
+ggsave(plot = combined_tumour_and_metastases_plots, filename = "../figures/supp_figure9.pdf", width = 20.57, height = 24.34)
 
 ### Make example plots for MCRPC samples
 
+# Add significance symbol
+metastases_sample_correlation_tables_combined$significance = sig_sym(metastases_sample_correlation_tables_combined$q_value)
+
 # Load MCRPC correlation results
-mcrpc_correlation_results = readRDS("../finding_tmrs/mcrpc_whole_gene_body_correlations.rds")
+mcrpc_correlation_results = readRDS("../finding_tmrs/meth_transcript_cors/mcrpc_whole_gene_body_correlations.rds")
 
 # Load location of TSS sites
 tss_gr = readRDS("../auxillary_data/cage_supported_gencode_tss.rds")

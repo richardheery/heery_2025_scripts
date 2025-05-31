@@ -18,23 +18,15 @@ cpg_sites = readRDS("../auxillary_data/all_cpg_sites_hg38.rds")
 tss_cpgs = subsetByOverlaps(cpg_sites, transcripts_gr)
 rm(cpg_sites); gc()
 
-# Load TMRs filtered for CAGE supported TSS not overlapping repeats
-cpgea_normal_tmrs = readRDS("../finding_tmrs/tmr_granges/cpgea_normal_tmrs.rds")
-cpgea_tumour_tmrs = readRDS("../finding_tmrs/tmr_granges/cpgea_tumour_tmrs.rds")
-mcrpc_tmrs = readRDS("../finding_tmrs/tmr_granges/mcrpc_tmrs.rds")
-
-# Get list of TMRs
-tmr_list = list(
-  "Normal Prostate" = cpgea_normal_tmrs,
-  "Prostate Tumours" = cpgea_tumour_tmrs,
-  "Prostate Metastases" = mcrpc_tmrs)
+#  Load TMR list
+tmr_list = readRDS("../finding_tmrs/tmr_granges/tmr_list.rds")
 
 # For each TMR group get the TSS regions for the corresponding transcripts
 tmr_list_transcript_regions = lapply(tmr_list, function(x) transcripts_gr[transcripts_gr$ID %in% x$ID])
 
 # Load a list of GRanges for TR binding sites for prostate from ReMap and split into a list
 remap_prostate_gr = readRDS("../auxillary_data/prostate_remap_gr.rds")
-remap_prostate_gr_list = split(remap_prostate_gr, remap_prostate_gr_list$tf)
+remap_prostate_gr_list = split(remap_prostate_gr, remap_prostate_gr$tf)
 
 # Calculate enrichment of TMRs for all binding sites
 system.time({all_tf_enrichment_results = lapply(tmr_list, function(x) query_subject_cpg_overlap_test(query_regions = x, 

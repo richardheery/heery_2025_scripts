@@ -37,7 +37,7 @@ tmrs_5kb_bins_plot = customize_ggplot_theme(plot = tmrs_5kb_bins_plot, base_them
   theme(strip.background = element_blank(), plot.margin = margin(b = 0.5, unit = "cm")) +
   geom_vline(xintercept = 0, linetype = "dotted")
 tmrs_5kb_bins_plot
-ggsave(plot = tmrs_5kb_bins_plot , "../figures/supplementary_figure8A.pdf",  width = 27, height = 9)
+ggsave(plot = tmrs_5kb_bins_plot , "../figures/supplementary_figure10A.pdf",  width = 27, height = 9)
 
 ### Make introns and exons plots
 
@@ -63,7 +63,7 @@ cpgea_normal_tmrs_introns_exons_plot = plot_tmr_regions(tmrs = cpgea_normal_tmrs
 cpgea_normal_tmrs_introns_exons_plot_normalized = plot_tmr_regions(tmrs = cpgea_normal_tmrs, 
   transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs in Normal Prostate", normalize = T)
 cpgea_normal_tmrs_introns_exons_plot_normalized
-ggsave(plot = cpgea_normal_tmrs_introns_exons_plot, "../figures/supplementary_figure9.pdf", width = 16, height = 9)
+#ggsave(plot = cpgea_normal_tmrs_introns_exons_plot, "../figures/supplementary_figure9.pdf", width = 16, height = 9)
 ggsave(plot = ggarrange(cpgea_normal_tmrs_introns_exons_plot_normalized, labels = "D"), 
   "../figures/figure4D.pdf", width = 20.57, height = 11.57)
 
@@ -84,11 +84,11 @@ tumour_and_metastases_plots = list(cpgea_tumour_tmrs_introns_exons_plot, cpgea_t
   mcrpc_tmrs_introns_exons_plot, mcrpc_tmrs_introns_exons_plot_normalized)
 combined_tumour_metastases_plots = ggarrange(plotlist = tumour_and_metastases_plots, nrow = 2, ncol = 2, labels = LETTERS[1:4], common.legend = T, legend = "right")
 combined_tumour_metastases_plots
-ggsave(plot = combined_tumour_metastases_plots, "../figures/supplementary_figure10.pdf", width = 32, height = 18)
+ggsave(plot = combined_tumour_metastases_plots, "../figures/supp_figure11.pdf", width = 32, height = 18)
 
 # Make distribution plots just for MANE transcripts
 mane_transcripts = readRDS("../auxillary_data/mane_pc_transcript_ids.rds")
 cpgea_normal_mane_tmrs_introns_exons_plot_normalized = plot_tmr_regions(tmrs = cpgea_normal_tmrs[cpgea_normal_tmrs$ID %in% mane_transcripts], 
   transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs for MANE Transcripts in Normal Prostate", normalize = T)
 cpgea_normal_mane_tmrs_introns_exons_plot_normalized
-ggsave(plot = cpgea_normal_mane_tmrs_introns_exons_plot_normalized, "../figures/supplementary_figure12.pdf", width = 16, height = 9)
+ggsave(plot = cpgea_normal_mane_tmrs_introns_exons_plot_normalized, "../figures/supp_figure12.pdf", width = 16, height = 9)

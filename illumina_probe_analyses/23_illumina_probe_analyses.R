@@ -13,7 +13,7 @@ illumina_450k_probes_hg38 = readRDS("../auxillary_data/infinium_450k_probe_grang
 illumina_epic_probes_hg38 = readRDS("../auxillary_data/epic_probe_gr_hg38.rds")
 
 # Get correlation results for CPGEA normal samples and combine 
-cpgea_normal_correlations = readRDS("../finding_tmrs/cpgea_normal_whole_gene_body_correlations.rds")
+cpgea_normal_correlations = readRDS("../finding_tmrs/meth_transcript_cors/cpgea_normal_whole_gene_body_correlations.rds")
 cpgea_normal_correlations = dplyr::bind_rows(cpgea_normal_correlations, .id = "transcript_id")
 
 # Correct p-values

@@ -14,7 +14,7 @@ system.time({cpgea_normal_cor_results = readRDS("meth_transcript_cors/cpgea_norm
 # Find TMRs for CPGEA normal samples. Took 20 minutes with 1 core.
 system.time({cpgea_normal_tmrs = findTMRs(correlation_list = cpgea_normal_cor_results, 
   p_adjust_method = "fdr", p_value_threshold = 0.05, BPPARAM = bpparam)})
-saveRDS(cpgea_normal_tmrs, "tmr_granges/cpgea_normal_tmrs.rds")
+saveRDS(cpgea_normal_tmrs, "tmr_granges/cpgea_normal_tmrs_with_repeats.rds")
 rm(cpgea_normal_cor_results); gc()
 
 # Load methylation-correlation results for CPGEA tumour. Took 3 minutes. 
@@ -23,7 +23,7 @@ system.time({cpgea_tumour_cor_results = readRDS("meth_transcript_cors/cpgea_tumo
 # Find TMRs for CPGEA tumour samples. Took 25 minutes with 1 core.
 system.time({cpgea_tumour_tmrs = findTMRs(correlation_list = cpgea_tumour_cor_results, 
   p_adjust_method = "fdr", p_value_threshold = 0.05, BPPARAM = bpparam)})
-saveRDS(cpgea_tumour_tmrs, "tmr_granges/cpgea_tumour_tmrs.rds")
+saveRDS(cpgea_tumour_tmrs, "tmr_granges/cpgea_tumour_tmrs_with_repeats.rds")
 rm(cpgea_tumour_cor_results); gc()
 
 # Load methylation-correlation results for MCRPC. Took 3 minutes. 
@@ -32,7 +32,7 @@ system.time({mcrpc_cor_results = readRDS("meth_transcript_cors/mcrpc_whole_gene_
 # Find TMRs for MCRPC samples. Took 17 minutes with 1 core.
 system.time({mcrpc_tmrs = findTMRs(correlation_list = mcrpc_cor_results, 
   p_adjust_method = "fdr", p_value_threshold = 0.05, BPPARAM = bpparam)})
-saveRDS(mcrpc_tmrs, "tmr_granges/mcrpc_tmrs.rds")
+saveRDS(mcrpc_tmrs, "tmr_granges/mcrpc_tmrs_with_repeats.rds")
 rm(mcrpc_cor_results); gc()
 
 tmr_list = list(
@@ -45,7 +45,7 @@ tmr_list = list(
 )
 
 # Get repeat ranges for hg38
-repeat_ranges = readRDS("~/genomes/repetitive_sequences/repeatmasker/repeatmasker_granges_ucsc.rds")
+repeat_ranges = readRDS("../auxillary_data/repeatmasker_granges_ucsc.rds")
 
 # Save all TMRs without repeats
 cpgea_normal_tmrs = subsetByOverlaps(cpgea_normal_tmrs, repeat_ranges, invert = T)
