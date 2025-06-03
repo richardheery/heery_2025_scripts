@@ -87,7 +87,7 @@ saveRDS(cpgea_normal_prop_sig_bins_plot, "cpgea_normal_prop_sig_bins_plot.rds")
 ### Create significance plots for tumour samples
 
 # Get correlation results for CPGEA tumour samples and combine them and add column for bin
-cpgea_tumour_correlations = readRDS("../finding_tmrs/cpgea_tumour_whole_gene_body_correlations.rds")
+cpgea_tumour_correlations = readRDS("../finding_tmrs/meth_transcript_cors/cpgea_tumour_whole_gene_body_correlations.rds")
 cpgea_tumour_correlations = dplyr::bind_rows(cpgea_tumour_correlations, .id = "transcript_id")
 cpgea_tumour_correlations$bin = plyr::round_any(cpgea_tumour_correlations$distance_to_tss, 500)
 
@@ -113,7 +113,7 @@ saveRDS(cpgea_tumour_prop_sig_bins_plot, "cpgea_tumour_prop_sig_bins_plot.rds")
 ### Create plots for MCRPC metastasis samples
 
 # Get correlation results for CPGEA normal samples and combine them and add column for bin
-mcrpc_correlations = readRDS("../finding_tmrs/mcrpc_whole_gene_body_correlations.rds")
+mcrpc_correlations = readRDS("../finding_tmrs/meth_transcript_cors/mcrpc_whole_gene_body_correlations.rds")
 mcrpc_correlations = dplyr::bind_rows(mcrpc_correlations, .id = "transcript_id")
 mcrpc_correlations$bin = plyr::round_any(mcrpc_correlations$distance_to_tss, 500)
 
@@ -137,7 +137,7 @@ mcrpc_prop_sig_bins_plot = mcrpc_prop_sig_bins_plot + scale_x_continuous(expand 
 mcrpc_prop_sig_bins_plot
 saveRDS(mcrpc_prop_sig_bins_plot, "mcrpc_prop_sig_bins_plot.rds")
 
-### Create plots of standard deviations of CpG methylation
+### Create plots of standard deviations of CpG methylation !!!
 
 # Load CPGEA and MCRPC meth RSEs
 cpgea_wgbs_hg38 = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylation_data/cpgea_meth_rse")
@@ -162,7 +162,7 @@ mcrpc_wgbs_hg38_tss_proximal = subsetByOverlaps(mcrpc_wgbs_hg38, reduce(tss_prox
 # Subset for normal samples
 cpgea_wgbs_hg38_tss_proximal_normal = cpgea_wgbs_hg38_tss_proximal[, grep("N", colnames(cpgea_wgbs_hg38), value = T)]
 
-# Create a GRanges with methylation standard deviations for all CpGs in TSS regions in normal samples. Took 6 minutes
+# Create a GRanges with methylation standard deviations for all CpGs in TSS regions in normal samples. Took 11 minutes
 system.time({cpg_sds_normal = DelayedMatrixStats::rowSds(assay(cpgea_wgbs_hg38_tss_proximal_normal), na.rm = T)})
 names(cpg_sds_normal) = as.character(rowRanges(cpgea_wgbs_hg38_tss_proximal_normal))
 cpg_sds_normal_gr = GRanges(names(cpg_sds_normal), values = unname(cpg_sds_normal))
@@ -171,13 +171,13 @@ saveRDS(cpg_sds_normal_gr, "cpg_sds_normal_gr.rds")
 # Subset for tumour samples
 cpgea_wgbs_hg38_tss_proximal_tumour = cpgea_wgbs_hg38_tss_proximal[, grep("T", colnames(cpgea_wgbs_hg38), value = T)]
 
-# Create a GRanges with methylation standard deviations for all CpGs in TSS regions in tumour samples. . Took 6 minutes
+# Create a GRanges with methylation standard deviations for all CpGs in TSS regions in tumour samples. Took 11 minutes
 system.time({cpg_sds_tumour = DelayedMatrixStats::rowSds(assay(cpgea_wgbs_hg38_tss_proximal_tumour), na.rm = T)})
 names(cpg_sds_tumour) = as.character(rowRanges(cpgea_wgbs_hg38_tss_proximal_tumour))
 cpg_sds_tumour_gr = GRanges(names(cpg_sds_tumour), values = unname(cpg_sds_tumour))
 saveRDS(cpg_sds_tumour_gr, "cpg_sds_tumour_gr.rds")
 
-# Create a GRanges with methylation standard deviations for all CpGs in TSS regions in metastasis samples
+# Create a GRanges with methylation standard deviations for all CpGs in TSS regions in metastasis samples. Took 6 minutes
 system.time({cpg_sds_metastasis = DelayedMatrixStats::rowSds(assay(mcrpc_wgbs_hg38_tss_proximal), na.rm = T)})
 names(cpg_sds_metastasis) = as.character(rowRanges(mcrpc_wgbs_hg38_tss_proximal))
 cpg_sds_metastasis_gr = GRanges(names(cpg_sds_metastasis), values = unname(cpg_sds_metastasis))
@@ -249,10 +249,10 @@ cpg_sds_normal_boxplots = readRDS("cpg_sds_normal_boxplots.rds")
 cpg_sds_metastasis_boxplots = readRDS("cpg_sds_metastasis_boxplots.rds")
 
 # Make combined plot with CpGs, probes and tumour plots
-figure7_plot = cowplot::plot_grid(plotlist = 
+figure8_plot = cowplot::plot_grid(plotlist = 
     list(cpgs_per_bin_plot, combined_probes_per_bin_plot, cpgea_tumour_prop_sig_bins_plot, cpg_sds_tumour_boxplots), 
   nrow = 2, ncol = 2, align = "hv", labels = c("A", "B", "C", "D"), byrow = T)
-ggsave(plot = figure7_plot, "../figures/figure7.pdf", width = 32, height = 18)
+ggsave(plot = figure8_plot, "../figures/figure8.pdf", width = 32, height = 18)
 
 # Combine normal and metastases plots 
 normal_and_metastases_plots = cowplot::plot_grid(plotlist = 
@@ -260,7 +260,7 @@ normal_and_metastases_plots = cowplot::plot_grid(plotlist =
       mcrpc_prop_sig_bins_plot, cpg_sds_metastasis_boxplots),
   nrow = 2, ncol = 2, align = "hv", labels = c("A", "B", "C", "D"), byrow = F)
 normal_and_metastases_plots
-ggsave(plot = normal_and_metastases_plots, "../figures/supp_normal_metastasis_probe_plot.pdf", width = 32, height = 18)
+ggsave(plot = normal_and_metastases_plots, "../figures/supp_figure17.pdf", width = 32, height = 18)
 
 ### Find proportion of TMRs overlapping Illumina probes
 

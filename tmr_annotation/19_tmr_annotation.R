@@ -26,28 +26,11 @@ tmrs_combined$group = names(tmrs_combined)
 transcripts_gr = readRDS("../auxillary_data/pc_transcripts_gr.rds")
 transcripts_gr = methodical::expand_granges(transcripts_gr, 5000, 5000)
 
-# Get CpG islands from UCSC
-cpg_island_annotation <- annotatr::build_annotations(genome = "hg38", annotations = "hg38_cpgs")
-cpg_island_annotation$type = factor(gsub("hg38_", "", cpg_island_annotation$type))
-cpg_island_annotation$type = recode_factor(cpg_island_annotation$type, 
-  "cpg_inter" = "Open Sea",
-  "cpg_islands" = "CpG Islands",
-  "cpg_shelves" = "CpG Shelves",
-  "cpg_shores" = "CpG Shores")
-cpg_island_annotation$region_type = cpg_island_annotation$type
-cpg_island_annotation$type = NULL
-
 # Load hg38 genome annotation
 genome_annotation_hg38 = readRDS("../auxillary_data/complete_regulatory_annotation.rds")
 
-# Remove CpG Islands
-genome_annotation_hg38 = genome_annotation_hg38[genome_annotation_hg38$region_type != "CpG Island"]
-
-# Remove " Region" from tmr_annotation$region_type
-genome_annotation_hg38$region_type = gsub(" region", "", genome_annotation_hg38$region_type)
-
-# Combine genome_annotation_hg38 and cpg_island_annotation
-genome_annotation_hg38 = c(genome_annotation_hg38, cpg_island_annotation)
+# Remove introns and exons
+genome_annotation_hg38 = genome_annotation_hg38[!genome_annotation_hg38$region_type %in% c("Exon", "Intron")]
 
 # Add transcripts_gr as background TMR search space
 background_gr = transcripts_gr
@@ -75,7 +58,7 @@ tmr_annotation_overlaps_summary$normalized_count = tmr_annotation_overlaps_summa
 
 # Convert region_type to a factor and give specified order
 tmr_annotation_overlaps_summary$annotation = factor(tmr_annotation_overlaps_summary$annotation, 
-  c("Background", "CpG Islands", "CpG Shores", "CpG Shelves", "Open Sea", "Predicted promoter", "Predicted enhancer", "Open chromatin", "CTCF Transcription Factor"))
+  c("Background", "CpG Islands", "CpG Shores", "CpG Shelves", "Open Sea", "Predicted Promoter", "Predicted Enhancer", "Open Chromatin", "CTCF BS"))
 
 # Put tmr_groups in right order
 tmr_annotation_overlaps_summary$tmr_group = factor(tmr_annotation_overlaps_summary$tmr_group, 
@@ -152,4 +135,4 @@ tmr_chromatin_state_annotation_plot
 combined_annotation_plot = tmr_genomic_feature_annotation_plot / tmr_chromatin_state_annotation_plot +
   plot_layout(heights = c(1, 2), nrow = 2, ncol = 1) +
   plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 20))
-ggsave(plot = combined_annotation_plot, filename = "../figures/figure5A_and_B.pdf", width = 27, height = 27)
+saveRDS(combined_annotation_plot, "combined_annotation_plot.rds")

@@ -155,149 +155,261 @@ normal_results = list.files("tcga_probe_cors", pattern = "normal", full.names = 
 tumour_results = list.files("tcga_probe_cors", pattern = "tumour", full.names = T)
 
 # Create correlations summary plots for all normal samples
-system.time({normal_plots = lapply(normal_results, function(x)
-  plot_cor_results(cor_results = readRDS(x), title = basename(gsub("_normal_sample_cors.rds", "", x)), results_dir = "normal_plots"))})
+system.time({
+  normal_plots = lapply(normal_results, function(x)
+    plot_cor_results(
+      cor_results = readRDS(x),
+      title = basename(gsub("_normal_sample_cors.rds", "", x)),
+      results_dir = "normal_plots"
+    ))
+})
 
 # Create correlations summary plots for all tumour samples
-system.time({tumour_plots = lapply(tumour_results, function(x)
-  plot_cor_results(cor_results = readRDS(x), title = basename(gsub("_tumour_sample_cors.rds", "", x)), results_dir = "tumour_plots"))})
+system.time({
+  tumour_plots = lapply(tumour_results, function(x)
+    plot_cor_results(
+      cor_results = readRDS(x),
+      title = basename(gsub("_tumour_sample_cors.rds", "", x)),
+      results_dir = "tumour_plots"
+    ))
+})
 
-selected_normal_plots = lapply(list.files("normal_plots/", full.names = T, pattern = ".rds")[c(2, 5, 8, 11)], readRDS) 
-selected_normal_plots = ::title_ggplots(selected_normal_plots, 
-  c("Normal Breast Samples", "Normal Head and Neck Samples", "Normal Liver Samples", "Normal Endometrial Samples"))
+selected_normal_plots = lapply(list.files("normal_plots/", full.names = T, pattern = ".rds")[c(2, 5, 8, 11)],
+  readRDS)
+selected_normal_plots =::title_ggplots(
+  selected_normal_plots,
+  c(
+    "Normal Breast Samples",
+    "Normal Head and Neck Samples",
+    "Normal Liver Samples",
+    "Normal Endometrial Samples"
+  )
+)
 
-selected_tumour_plots = lapply(list.files("tumour_plots/", full.names = T, pattern = ".rds")[c(2, 6, 16, 20)], readRDS) 
-selected_tumour_plots = ::title_ggplots(selected_tumour_plots, 
-  c("Bladder Tumour Samples", "Colon Tumour Samples", "Lung Adenocarcinoma Tumour Samples", "Pancreatic Tumour Samples"))
+selected_tumour_plots = lapply(list.files("tumour_plots/", full.names = T, pattern = ".rds")[c(2, 6, 16, 20)],
+  readRDS)
+selected_tumour_plots =::title_ggplots(
+  selected_tumour_plots,
+  c(
+    "Bladder Tumour Samples",
+    "Colon Tumour Samples",
+    "Lung Adenocarcinoma Tumour Samples",
+    "Pancreatic Tumour Samples"
+  )
+)
 
 combined_selected_plot_list = c(selected_normal_plots, selected_tumour_plots)
-combined_selected_plot = cowplot::plot_grid(plotlist = combined_selected_plot_list, 
-  ncol = 2, nrow = 4, align = "hv", byrow = T)
-combined_selected_plot 
-ggsave(plot = combined_selected_plot, "../final_plots/supp_figure_tcga_probe_cors.pdf", width = 32, height = 36)
+combined_selected_plot = cowplot::plot_grid(
+  plotlist = combined_selected_plot_list,
+  ncol = 2,
+  nrow = 4,
+  align = "hv",
+  byrow = T
+)
+combined_selected_plot
+ggsave(
+  plot = combined_selected_plot,
+  "../final_plots/supp_figure_tcga_probe_cors.pdf",
+  width = 32,
+  height = 36
+)
 
 
 
 
 ### 500 kb test
 # Took 3 hours
-system.time({for(project in names(deseq2_normalized_count_files)){
-  
-  # Print name of current project
-  message(paste("Starting", project))
-  
-  # Read in counts table for project
-  counts_table = data.frame(data.table::fread(deseq2_normalized_count_files[project]), row.names = 1)
-  
-  # Find common samples to tcga_meth_rse_hg19 and counts table
-  common_samples = intersect(names(counts_table), colnames(tcga_meth_rse_hg19))
-  
-  # Subset for normal samples
-  common_normal_samples = common_samples[endsWith(common_samples, "11")]
-  
-  # If there are less than 10 normal samples, skip to next iteration
-  if(length(common_normal_samples) < 10){
-    message("Less than 10 common normal samples so skipping to next project")
-    next
+system.time({
+  for (project in names(deseq2_normalized_count_files)) {
+    # Print name of current project
+    message(paste("Starting", project))
+    
+    # Read in counts table for project
+    counts_table = data.frame(data.table::fread(deseq2_normalized_count_files[project]),
+      row.names = 1)
+    
+    # Find common samples to tcga_meth_rse_hg19 and counts table
+    common_samples = intersect(names(counts_table), colnames(tcga_meth_rse_hg19))
+    
+    # Subset for normal samples
+    common_normal_samples = common_samples[endsWith(common_samples, "11")]
+    
+    # If there are less than 10 normal samples, skip to next iteration
+    if (length(common_normal_samples) < 10) {
+      message("Less than 10 common normal samples so skipping to next project")
+      next
+    }
+    
+    # Calculate correlation results for normal samples
+    cor_results = calculateMethSiteTranscriptCors(
+      meth_rse = tcga_meth_rse_hg19,
+      transcript_expression_table = counts_table,
+      samples_subset = common_normal_samples,
+      tss_gr = gencode_tss_hg19,
+      expand_upstream = 500000,
+      expand_downstream = 500000,
+      cor_method = "s",
+      BPPARAM = BiocParallel::MulticoreParam(workers = 5)
+    )
+    
+    # Save correlation results
+    saveRDS(
+      cor_results,
+      paste0(
+        "tcga_probe_cors_500kb/",
+        project,
+        "_normal_sample_cors.rds"
+      )
+    )
+    
   }
-  
-  # Calculate correlation results for normal samples
-  cor_results = calculateMethSiteTranscriptCors(
-    meth_rse = tcga_meth_rse_hg19, 
-    transcript_expression_table = counts_table, samples_subset = common_normal_samples, 
-    tss_gr = gencode_tss_hg19, expand_upstream = 500000, expand_downstream = 500000, 
-    cor_method = "s", BPPARAM = BiocParallel::MulticoreParam(workers = 5))
-  
-  # Save correlation results
-  saveRDS(cor_results, paste0("tcga_probe_cors_500kb/", project, "_normal_sample_cors.rds"))
-  
-}})
+})
 
 # Repeat for tumour. Took 5 hours
 
-system.time({for(project in names(deseq2_normalized_count_files)){
-  
-  # Print name of current project
-  message(paste("Starting", project))
-  
-  # Read in counts table for project
-  counts_table = data.frame(data.table::fread(deseq2_normalized_count_files[project]), row.names = 1)
-  
-  # Find common samples to tcga_meth_rse_hg19 and counts table
-  common_samples = intersect(names(counts_table), colnames(tcga_meth_rse_hg19))
-  
-  # Subset for tumour samples
-  common_tumour_samples = common_samples[endsWith(common_samples, "01")]
-  
-  # If there are less than 10 tumour samples, skip to next iteration
-  if(length(common_tumour_samples) < 10){
-    message("Less than 10 common tumour samples so skipping to next project")
-    next
+system.time({
+  for (project in names(deseq2_normalized_count_files)) {
+    # Print name of current project
+    message(paste("Starting", project))
+    
+    # Read in counts table for project
+    counts_table = data.frame(data.table::fread(deseq2_normalized_count_files[project]),
+      row.names = 1)
+    
+    # Find common samples to tcga_meth_rse_hg19 and counts table
+    common_samples = intersect(names(counts_table), colnames(tcga_meth_rse_hg19))
+    
+    # Subset for tumour samples
+    common_tumour_samples = common_samples[endsWith(common_samples, "01")]
+    
+    # If there are less than 10 tumour samples, skip to next iteration
+    if (length(common_tumour_samples) < 10) {
+      message("Less than 10 common tumour samples so skipping to next project")
+      next
+    }
+    
+    # Calculate correlation results for tumour samples
+    cor_results = calculateMethSiteTranscriptCors(
+      meth_rse = tcga_meth_rse_hg19,
+      transcript_expression_table = counts_table,
+      samples_subset = common_tumour_samples,
+      tss_gr = gencode_tss_hg19,
+      expand_upstream = 500000,
+      expand_downstream = 500000,
+      cor_method = "s",
+      BPPARAM = BiocParallel::MulticoreParam(workers = 20)
+    )
+    
+    # Save correlation results
+    saveRDS(
+      cor_results,
+      paste0(
+        "tcga_probe_cors_500kb/",
+        project,
+        "_tumour_sample_cors.rds"
+      )
+    )
+    
   }
-  
-  # Calculate correlation results for tumour samples
-  cor_results = calculateMethSiteTranscriptCors(
-    meth_rse = tcga_meth_rse_hg19, 
-    transcript_expression_table = counts_table, samples_subset = common_tumour_samples, 
-    tss_gr = gencode_tss_hg19, expand_upstream = 500000, expand_downstream = 500000, 
-    cor_method = "s", BPPARAM = BiocParallel::MulticoreParam(workers = 20))
-  
-  # Save correlation results
-  saveRDS(cor_results, paste0("tcga_probe_cors_500kb/", project, "_tumour_sample_cors.rds"))
-  
-}})
+})
 
 # Get paths to all normal sample and all tumour sample results files
-normal_results_500kb = list.files("tcga_probe_cors_500kb", pattern = "normal", full.names = T)
-tumour_results_500kb = list.files("tcga_probe_cors_500kb", pattern = "tumour", full.names = T)
+normal_results_500kb = list.files("tcga_probe_cors_500kb",
+  pattern = "normal",
+  full.names = T)
+tumour_results_500kb = list.files("tcga_probe_cors_500kb",
+  pattern = "tumour",
+  full.names = T)
 
 # Create correlations summary plots for all normal samples
-system.time({normal_plots_500kb = lapply(normal_results_500kb, function(x)
-  plot_cor_results(cor_results = readRDS(x), title = basename(gsub("_normal_sample_cors.rds", "", x)), breaks = 400000))})
-pdf_save(plotlist = normal_plots_500kb, nrows = 1, filename = "tcga_normal_plots_500kb_abs.pdf")
+system.time({
+  normal_plots_500kb = lapply(normal_results_500kb, function(x)
+    plot_cor_results(
+      cor_results = readRDS(x),
+      title = basename(gsub("_normal_sample_cors.rds", "", x)),
+      breaks = 400000
+    ))
+})
+pdf_save(plotlist = normal_plots_500kb,
+  nrows = 1,
+  filename = "tcga_normal_plots_500kb_abs.pdf")
 
 # Create correlations summary plots for all tumour samples
-system.time({tumour_plots_500kb = lapply(tumour_results_500kb, function(x)
-  plot_cor_results(cor_results = readRDS(x), title = basename(gsub("_tumour_sample_cors.rds", "", x)), breaks = 400000))})
-pdf_save(plotlist = tumour_plots_500kb, nrows = 1, filename = "tcga_tumour_plots_500kb_abs.pdf")
+system.time({
+  tumour_plots_500kb = lapply(tumour_results_500kb, function(x)
+    plot_cor_results(
+      cor_results = readRDS(x),
+      title = basename(gsub("_tumour_sample_cors.rds", "", x)),
+      breaks = 400000
+    ))
+})
+pdf_save(plotlist = tumour_plots_500kb,
+  nrows = 1,
+  filename = "tcga_tumour_plots_500kb_abs.pdf")
 
 
 ###
 
 # Get paths to normal correlation result files
 normal_cor_results_files = list.files("tcga_probe_cors", pattern = "normal", full.names = T)
-names(normal_cor_results_files) = gsub("_normal_sample_cors.rds", "", basename(normal_cor_results_files))
+names(normal_cor_results_files) = gsub("_normal_sample_cors.rds",
+  "",
+  basename(normal_cor_results_files))
 
 blca_plots = plot_cor_results(readRDS(normal_cor_results_files["BLCA"]))
 esca_plots = plot_cor_results(readRDS(normal_cor_results_files["ESCA"]))
 coad_plots = plot_cor_results(readRDS(normal_cor_results_files["COAD"]))
 
 ###
-# Took 22 minutes. 
-system.time({brca_cor_test_normal_samples = calculateMethSiteTranscriptCors(
-  meth_rse = tcga_meth_rse_hg19, 
-  transcript_expression_table = brca_table, samples_subset = common_normal_samples, 
-  tss_gr = gencode_tss, expand_upstream = 5000, expand_downstream = 5000, 
-  cor_method = "s", BPPARAM = BiocParallel::MulticoreParam(workers = 20))})
+# Took 22 minutes.
+system.time({
+  brca_cor_test_normal_samples = calculateMethSiteTranscriptCors(
+    meth_rse = tcga_meth_rse_hg19,
+    transcript_expression_table = brca_table,
+    samples_subset = common_normal_samples,
+    tss_gr = gencode_tss,
+    expand_upstream = 5000,
+    expand_downstream = 5000,
+    cor_method = "s",
+    BPPARAM = BiocParallel::MulticoreParam(workers = 20)
+  )
+})
 saveRDS(brca_cor_test, "tcga_probe_cors/brca_cor_test.rds")
-saveRDS(brca_cor_test_normal_samples, "tcga_probe_cors/brca_cor_test_normal_samples.rds")
+saveRDS(
+  brca_cor_test_normal_samples,
+  "tcga_probe_cors/brca_cor_test_normal_samples.rds"
+)
 
 brca_cor_test  = readRDS("tcga_probe_cors/brca_cor_test.rds")
 brca_cor_test_normal_samples = readRDS("tcga_probe_cors/brca_cor_test_normal_samples.rds")
 
 
 plot_cor_results(brca_cor_test, "BRCA Probe Correlation Summary")
-plot_cor_results(brca_cor_test_normal_samples, "BRCA Probe Normal Samples Correlation Summary")
+plot_cor_results(brca_cor_test_normal_samples,
+  "BRCA Probe Normal Samples Correlation Summary")
 
 
 brca_cor_test$bin = plyr::round_any(brca_cor_test$distance_to_tss, 500)
 brca_cor_test$sign = sign(brca_cor_test$cor)
 brca_cor_test = filter(brca_cor_test, !is.na(cor) & abs(cor) > 0)
-brca_cor_test_summary = summarize(group_by(brca_cor_test, bin, sign), 
-  mean_cor = mean(cor, na.rm = T), prop_sig = sum(p_val < 0.05, na.rm = T)/sum(!is.na(p_val)))
+brca_cor_test_summary = summarize(
+  group_by(brca_cor_test, bin, sign),
+  mean_cor = mean(cor, na.rm = T),
+  prop_sig = sum(p_val < 0.05, na.rm = T) / sum(!is.na(p_val))
+)
 
-ggplot(brca_cor_test_summary, aes(x = factor(bin), y = prop_sig, fill = factor(sign))) +
+ggplot(brca_cor_test_summary,
+  aes(
+    x = factor(bin),
+    y = prop_sig,
+    fill = factor(sign)
+  )) +
   geom_col(position = "dodge")
 
-ggplot(brca_cor_test_summary, aes(x = factor(bin), y = mean_cor, fill = factor(sign))) +
+ggplot(brca_cor_test_summary,
+  aes(
+    x = factor(bin),
+    y = mean_cor,
+    fill = factor(sign)
+  )) +
   geom_col()

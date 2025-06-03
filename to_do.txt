@@ -11,3 +11,5 @@ figure7 = tmr_methlation/tmr_methlation_vs_genomic_features.R.
 Complete download of data in 10_download_data.R
 Replace genomicTools, plotR and methylTools with scripts in auxillary_scripts
 Tidy 24_tcga_probe_transcript_cors.R
+
+rsync -av --exclude='.git/' --exclude='.gitignore' --size-only heery_2025_scripts/ /home/richardheery/mounts/apocrita_scratch/heery_2025_scripts/

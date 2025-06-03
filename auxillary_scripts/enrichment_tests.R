@@ -73,7 +73,7 @@ fisher_test_apply = function(test, query_list, universe, alternative = "greater"
   # Create a list with results for each vector in query_list
   results_list = foreach::foreach(query = query_list) %dopar% {
     
-    enrichmentTests::fisher_test_vectors(test = test, query = query, universe = universe, 
+    fisher_test_vectors(test = test, query = query, universe = universe, 
       alternative = alternative, return_overlap = return_overlap)
     
   }

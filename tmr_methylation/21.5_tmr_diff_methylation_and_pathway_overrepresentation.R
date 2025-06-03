@@ -7,16 +7,16 @@ library(GenomicRanges)
 library(SummarizedExperiment)
 source("../auxillary_scripts/diff_meth_methylsig.R")
 source("../auxillary_scripts/plotting_functions.R")
-source("../auxillary_scripts/fisher_test_functions.R")
+source("../auxillary_scripts/enrichment_tests.R")
 
 ### Test differential methylation of TMRs foind in different datasets
 
 # Load TSS
-tss_gr = readRDS("../auxillary_data/genomic_annotation/pc_tss_gr.rds")
+tss_gr = readRDS("../auxillary_data/cage_supported_gencode_tss.rds")
 background_genes = unique(tss_gr$gene_name)
 
 # Get list of TMRs
-tmr_list = readRDS("../finding_tmrs/tmr_list.rds")
+tmr_list = readRDS("../finding_tmrs/tmr_granges/tmr_list.rds")
 
 # Combine TMRs into a single GRanges
 combined_tmr_gr = unlist(GRangesList(tmr_list))
@@ -26,20 +26,20 @@ names(combined_tmr_gr) = paste(names(combined_tmr_gr), combined_tmr_gr$tmr_name,
 cpgea_meth_rse = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylation_data/cpgea_meth_rse")
 
 # Create a BPPARAM object
-bpparam = BiocParallel::MulticoreParam(3)
+bpparam = BiocParallel::MulticoreParam(20)
 
-# Perform differential analysis for different tmr definitions. Takes 25 minutes with 10 cores. 
+# Perform differential analysis for different tmr definitions. Takes 15 minutes with 20 cores. 
 system.time({tmr_diff_meth_results = diff_meth_methylsig(meth_rse = cpgea_meth_rse, genomic_regions = combined_tmr_gr, meth_reads_assay = "beta", coverage_assay = "cov",
   max_sites_per_chunk = floor(625000000/ncol(cpgea_meth_rse)), group_column = "condition", case = "Tumour", control = "Normal", BPPARAM = bpparam)})
-saveRDS(tmr_diff_meth_results, "tmr_methylation/tmr_diff_meth_results_methylsig.rds")
-tmr_diff_meth_results = readRDS("tmr_methylation/tmr_diff_meth_results_methylsig.rds")
+saveRDS(tmr_diff_meth_results, "tmr_diff_meth_results_methylsig.rds")
+tmr_diff_meth_results = readRDS("tmr_diff_meth_results_methylsig.rds")
 
-# Convert combined_tmr_gr to a data.frame and select necessday columns
+# Convert combined_tmr_gr to a data.frame and select necessary columns
 tmr_diff_meth_results = data.frame(mcols(tmr_diff_meth_results))
 
 # Add columns indicating dataset and direction
 tmr_diff_meth_results$dataset = gsub("tmrs_.*", "tmrs", row.names(tmr_diff_meth_results))
-tmr_diff_meth_results$direction = gsub(".*_tmrs_", "", gsub("_ENST.*", "", row.names(tmr_diff_meth_results)))
+tmr_diff_meth_results$direction = gsub(".*_tmrs_", "", gsub(".ENST.*", "", row.names(tmr_diff_meth_results)))
 
 # Add the transcript and gene name for results
 tmr_diff_meth_results$transcript = gsub("_tmr_.*", "", gsub(".*_ENST", "ENST", row.names(tmr_diff_meth_results)))
@@ -102,7 +102,7 @@ ggsave(plot = tmr_direction_meth_change_barplot, "../figures/figure6A.pdf", widt
 ### Create enrichment plots
 
 # Load MSigDB gene sets
-msigdb_gene_set_list = enrichmentTests::msigdb_gene_set_list
+msigdb_gene_set_list = readRDS("../auxillary_data/msigdb_complete_gene_set_list.rds")
 
 # Make a function which will take a list of genes and perform pathway enrichment
 plot_tmr_gene_enrichment = function(gene_list, pathways, filter_groups = NULL, 
@@ -160,4 +160,4 @@ combined_kegg_and_hallmark_plots = ggarrange(plotlist = list(
   customize_ggplot_theme(kegg_enrichment_plots_cancer[[1]], title = "Hypermethylated Negative TMRs", xlab = "Relative Enrichment", ylab = "KEGG Pathway") + theme(strip.background = element_blank()), 
   customize_ggplot_theme(hallmark_enrichment_plots_cancer[[2]], title = "Hypomethylated Negative TMRs", xlab = "Relative Enrichment", ylab = "MSigDB Hallmark Pathway") + theme(strip.background = element_blank())),  
     nrow = 2, labels = c("A", "B"))
-ggsave(plot = combined_kegg_and_hallmark_plots, "../figures/supplementary_figure14.pdf", width = 27, height = 18)
+ggsave(plot = combined_kegg_and_hallmark_plots, "../figures/supp_figure15.pdf", width = 27, height = 18)
