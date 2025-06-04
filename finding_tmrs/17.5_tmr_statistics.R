@@ -5,9 +5,9 @@ source("../auxillary_scripts/plotting_functions.R")
 source("../auxillary_scripts/enrichment_tests.R")
 
 # Load TMRs
-cpgea_normal_tmrs = readRDS("cpgea_normal_tmrs.rds")
-cpgea_tumour_tmrs = readRDS("cpgea_tumour_tmrs.rds")
-mcrpc_tmrs = readRDS("mcrpc_tmrs.rds")
+cpgea_normal_tmrs = readRDS("tmr_granges/cpgea_normal_tmrs.rds")
+cpgea_tumour_tmrs = readRDS("tmr_granges/cpgea_tumour_tmrs.rds")
+mcrpc_tmrs = readRDS("tmr_granges/mcrpc_tmrs.rds")
 
 # Create a list with the different TMR types
 tmr_list = list(
@@ -17,20 +17,20 @@ tmr_list = list(
 )
 
 # Get transcripts and genes associated with each dataset
-tmr_transcripts = lapply(tmr_list, function(x) unique(x$transcript_id))
+tmr_transcripts = lapply(tmr_list, function(x) unique(x$ID))
 tmr_genes = lapply(tmr_list, function(x) unique(x$gene_name))
 lengths(tmr_transcripts)
 lengths(tmr_genes)
 
 # Get list of TMRs separated by direction
-tmr_list = readRDS("tmr_list.rds")
+tmr_list = readRDS("tmr_granges/tmr_list.rds")
 
 # Create a data.frame summarizing the number of TMRs, transcripts and genes associated with each TMR group
 tmr_stats = data.frame(
   dataset = gsub("_negative|_positive", "", names(tmr_list)),
   direction = stringr::str_to_title(gsub(".*_", "", names(tmr_list))),
   tmr_count = lengths(tmr_list),
-  transcript_count = sapply(tmr_list, function(x) length(unique(x$transcript_id))),
+  transcript_count = sapply(tmr_list, function(x) length(unique(x$ID))),
   gene_count = sapply(tmr_list, function(x) length(unique(x$gene_name))),
   row.names = NULL
 )
@@ -50,13 +50,14 @@ tmr_stats_barplot = customize_ggplot_theme(tmr_stats_barplot,
   fill_colors = colour_list$purple_and_gold_light, x_labels = c("Normal Prostate", "Prostate Tumours", "Prostate Metastases"), 
   facet = "name", facet_labels = c("Number of TMRs", "Number of TMR-Associated Transcripts", "Number of TMR-Associated Genes"), 
   facet_scales = "fixed", x_labels_angle = 30) + theme(strip.background = element_blank())
+tmr_stats_barplot
 ggsave(plot = tmr_stats_barplot, filename = "../figures/supplementary_figure10B.pdf", width = 27, height = 9)
 
 # Calculate the proportion overlap between TMR groups
 tmr_overlaps = calculate_regions_overlap_list(tmr_list, ignore.strand = T, overlap_threshold = 0.25)
 
 # Get overlap proportions for transcripts and genes from different TMR groups
-transcript_overlaps = intersect_lengths_all_pairwise(lapply(tmr_list, function(x) x$transcript_id), proportion = T)
+transcript_overlaps = intersect_lengths_all_pairwise(lapply(tmr_list, function(x) x$ID), proportion = T)
 gene_overlaps = intersect_lengths_all_pairwise(lapply(tmr_list, function(x) x$gene_name), proportion = T)
 
 # Create row and column labels for heatmaps 
