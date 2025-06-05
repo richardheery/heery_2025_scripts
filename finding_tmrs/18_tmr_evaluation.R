@@ -172,7 +172,17 @@ significant_tmr_cor_barplots
 
 # Combine correlation_distribution_violins and significant_tmr_cor_barplots
 combined_violins_and_barplot = correlation_distribution_violins / significant_tmr_cor_barplots
-ggsave(plot = combined_violins_and_barplot, "../figures/supplementary_figure8D_and_E.pdf", width = 27, height = 23.63)
+
+# Load other plots to make supplementary figure 10
+tmrs_5kb_bins_plot = readRDS("tmrs_5kb_bins_plot.rds")
+tmr_stats_barplot = readRDS("tmr_stats_barplot.rds")
+tmr_stats_heatmaps = readRDS("tmr_stat_heatmaps.rds")
+
+plotlist = list(tmrs_5kb_bins_plot, tmr_stats_barplot, tmr_stats_heatmaps, correlation_distribution_violins, significant_tmr_cor_barplots)
+supp_figure_10 = ggarrange(plotlist = plotlist, nrow = 5, labels = LETTERS[1:5], widths = 27, heights = c(9, 9, 9, 11.815, 11.815))
+ggsave(plot = supp_figure_10, "../figures/supp_figure10.pdf", width = 27, height = 50.63, limitsize = FALSE)
+
+#ggsave(plot = combined_violins_and_barplot, "../figures/supplementary_figure8D_and_E.pdf", width = 27, height = 23.63, limitsize = FALSE)
 
 # Count proportion of significant correlations for external TMRs 
 tmr_evaluation_tables_external = filter(tmr_evaluation_tables, samples != tmr_samples)

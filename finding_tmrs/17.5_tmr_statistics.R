@@ -1,6 +1,7 @@
 # Create plots of TMR numbers and TMR overlaps
 
 # Load required packages
+source("../auxillary_scripts/granges_functions.R")
 source("../auxillary_scripts/plotting_functions.R")
 source("../auxillary_scripts/enrichment_tests.R")
 
@@ -51,10 +52,11 @@ tmr_stats_barplot = customize_ggplot_theme(tmr_stats_barplot,
   facet = "name", facet_labels = c("Number of TMRs", "Number of TMR-Associated Transcripts", "Number of TMR-Associated Genes"), 
   facet_scales = "fixed", x_labels_angle = 30) + theme(strip.background = element_blank())
 tmr_stats_barplot
+saveRDS(tmr_stats_barplot, "tmr_stats_barplot.rds")
 ggsave(plot = tmr_stats_barplot, filename = "../figures/supplementary_figure10B.pdf", width = 27, height = 9)
 
 # Calculate the proportion overlap between TMR groups
-tmr_overlaps = calculate_regions_overlap_list(tmr_list, ignore.strand = T, overlap_threshold = 0.25)
+tmr_overlaps = calculate_regions_overlap_list(grl = tmr_list, ignore.strand = T, overlap_threshold = 0.25)
 
 # Get overlap proportions for transcripts and genes from different TMR groups
 transcript_overlaps = intersect_lengths_all_pairwise(lapply(tmr_list, function(x) x$ID), proportion = T)
@@ -75,4 +77,6 @@ gene_overlaps_plot = heatmap_without_clustering(gene_overlaps, row_labels = labe
 # Combine heatmaps and save
 tmr_heatmap_list = list(tmr_overlaps_plot, transcript_overlaps_plot, gene_overlaps_plot)
 combined_tmr_heatmaps = ggpubr::ggarrange(plotlist = tmr_heatmap_list, nrow = 1, ncol = 3)
+combined_tmr_heatmaps
+saveRDS(combined_tmr_heatmaps, "tmr_stat_heatmaps.rds")
 ggsave(plot = combined_tmr_heatmaps, filename = "../figures/supplementary_figure10C.pdf", width = 27, height = 9, bg = "white")

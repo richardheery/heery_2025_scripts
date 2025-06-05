@@ -37,6 +37,7 @@ tmrs_5kb_bins_plot = customize_ggplot_theme(plot = tmrs_5kb_bins_plot, base_them
   theme(strip.background = element_blank(), plot.margin = margin(b = 0.5, unit = "cm")) +
   geom_vline(xintercept = 0, linetype = "dotted")
 tmrs_5kb_bins_plot
+saveRDS(tmrs_5kb_bins_plot, "tmrs_5kb_bins_plot.rds")
 ggsave(plot = tmrs_5kb_bins_plot , "../figures/supplementary_figure10A.pdf",  width = 27, height = 9)
 
 ### Make introns and exons plots
