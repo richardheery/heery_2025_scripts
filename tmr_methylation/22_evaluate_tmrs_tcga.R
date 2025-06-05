@@ -88,4 +88,13 @@ mcrpc_tmr_tcga_tumour_cors_boxplots = customize_ggplot_theme(mcrpc_tmr_tcga_tumo
   theme(strip.background = element_blank(), strip.text = element_blank())
 mcrpc_tmr_tcga_tumour_cors_boxplots = ggpubr::ggarrange(mcrpc_tmr_tcga_tumour_cors_boxplots, labels = "D")
 mcrpc_tmr_tcga_tumour_cors_boxplots
-ggsave(plot = mcrpc_tmr_tcga_tumour_cors_boxplots, "../figures/figure6D.pdf", width = 16, height = 9)
+
+# Load other plots to make figure 7
+tmr_direction_meth_change_barplot = readRDS("tmr_direction_meth_change_barplot.rds")
+methylation_change_boxplots = readRDS("methylation_change_boxplots.rds")
+tcga_wgbs_feature_meth_change_plot = reardRDS("tcga_wgbs_feature_meth_change_plot.rds")
+
+figure7_top = ggpubr::ggarrange(plotlist = list(tmr_direction_meth_change_barplot, methylation_change_boxplots), ncol = 2, labels = c("A", "B"))
+figure7_bottom = ggpubr::ggarrange(plotlist = list(tcga_wgbs_feature_meth_change_plot, mcrpc_tmr_tcga_tumour_cors_boxplots), nrow = 2, labels = c("C", "D"))
+figure7_complete = ggpubr::ggarrange(plotlist = list(figure7_top, figure7_bottom), nrow = 2, heights = c(9, 18))
+ggsave(plot = figure7_complete, "../figures/figure7.pdf", width = 16, height = 27)

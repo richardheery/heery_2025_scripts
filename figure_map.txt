@@ -1,10 +1,10 @@
-figure1 = Graphical abstract
+figure1 = Graphical abstract ***
 figure2 = 13_differential_promoter_methylation.R ***
 figure3 = 14_promoter_correlation_results.R ***
 figure4 = ? Methodical overview with TUBB6
-figure5 = ? How to make FOXD1 and PACSIN3 example plots + 19_tmr_annotation.R
-figure6 = 19_tmr_annotation.R + 20_tmr_transciption_factor_overlaps.R ***
-figure7 = 21_tmr_methylation_vs_genomic_features.R + 21_tmr_methylation_vs_genomic_features.R + 22_evaluate_tmrs_tcga.R
+figure5 = ?  + 19_tmr_annotation.R How to make FOXD1 and PACSIN3 example plots
+figure6 = 17_tmr_distribution_plots.R + 19_tmr_annotation.R + 20_tmr_transciption_factor_overlaps.R ***
+figure7 = 21_tmr_methylation_vs_genomic_features.R + 21_tmr_methylation_vs_genomic_features.R + 22_evaluate_tmrs_tcga.R ***
 figure8 = 23_illumina_probe_analyses.R *** [Remove standard deviation plots]
 
 supplementary_figure1 = ? Parameter selection

@@ -96,7 +96,7 @@ tmr_direction_meth_change_barplot = ggplot(tmr_diff_meth_results_summary,
   facet_wrap(as.formula(paste("~", "direction")), nrow = 2, 
     labeller = as_labeller(setNames(c("Negative TMRs", "Positive TMRs"), c("negative", "positive"))))
 tmr_direction_meth_change_barplot
-tmr_direction_meth_change_barplot = ggpubr::ggarrange(tmr_direction_meth_change_barplot, labels = "A")
+saveRDS(tmr_direction_meth_change_barplot, "tmr_direction_meth_change_barplot.rds")
 ggsave(plot = tmr_direction_meth_change_barplot, "../figures/figure6A.pdf", width = 8, height = 9)
 
 ### Create enrichment plots

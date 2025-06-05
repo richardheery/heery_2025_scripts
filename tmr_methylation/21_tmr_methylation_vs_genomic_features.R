@@ -41,9 +41,9 @@ genome_annotation_with_tmrs = c(genome_annotation, tmrs_gr)
 gc()
 
 # Create a BPPARAM object
-bpparam = BiocParallel::MulticoreParam(5)
+bpparam = BiocParallel::MulticoreParam(2)
 
-# Get methylation values for genomic features and TMRs. Took 3 minutes with 10 cores. 
+# Get methylation values for genomic features and TMRs. Took 6 minutes.
 system.time({genomic_features_with_tmrs_methylation = 
   summarizeRegionMethylation(meth_rse = cpgea_rse, genomic_regions = genome_annotation_with_tmrs, BPPARAM = bpparam)})
 
@@ -84,7 +84,7 @@ genomic_feature_mean_methylation_change_selected$region_type =
 
 # Set colours for genomic features
 feature_colors = rev(c(rep(colour_list$purple_and_gold_light, each = 1), 
-  rev(RColorBrewer::brewer.pal(7, name = "BrBG"))))
+  rev(RColorBrewer::brewer.pal(8, name = "BrBG"))[-7]))
 
 # Randomly select 250 regions for each region type for plotting points
 set.seed(123)
@@ -104,7 +104,8 @@ methylation_change_boxplots = customize_ggplot_theme(methylation_change_boxplots
   fill_colors = feature_colors)
 methylation_change_boxplots
 methylation_change_boxplots = ggpubr::ggarrange(methylation_change_boxplots, labels = "B")
-ggsave(plot = methylation_change_boxplots, "../figures/figure6B.pdf", width = 8, height = 9)
+saveRDS(methylation_change_boxplots, "methylation_change_boxplots.rds")
+#ggsave(plot = methylation_change_boxplots, "../figures/figure6B.pdf", width = 8, height = 9)
 
 ### Check methylation change at regions in 8 TCGA patients with WGBS data for matching tumour and normal samples 
 
@@ -116,7 +117,8 @@ genome_annotation_with_tmrs_list = split(genome_annotation_with_tmrs, genome_ann
 
 # Remove TMRs from normal prostate and prostate tumour samples and rename metastasis TMRs
 genome_annotation_with_tmrs_list = genome_annotation_with_tmrs_list[grep("Normal|Tumour", names(genome_annotation_with_tmrs_list), invert = T, value = T)]
-names(genome_annotation_with_tmrs_list)[c(11, 12)] = c("Positive TMRs", "Negative TMRs")
+names(genome_annotation_with_tmrs_list)[names(genome_annotation_with_tmrs_list) == "Prostate Metastasis TMRs -"] = "Negative TMRs"
+names(genome_annotation_with_tmrs_list)[names(genome_annotation_with_tmrs_list) == "Prostate Metastasis TMRs +"] = "Positive TMRs"
 
 # Get the mean methylation of CpGs for each genomic region. Took 10 minutes with 1 core locally
 system.time({tcga_wgbs_genomic_region_mean_meth = foreach(region = names(genome_annotation_with_tmrs_list), .packages = "methodical") %do% {
@@ -157,7 +159,7 @@ tcga_wgbs_genomic_region_mean_meth_change$cancer = colData(tcga_wgbs_meth_rse)[g
 tcga_wgbs_genomic_region_mean_meth_change$shape = 
   ifelse(grepl("TMR", tcga_wgbs_genomic_region_mean_meth_change$region_type), 23, 21)
 
-# Filter tcga_wgbs_genomic_region_mean_meth_change  for selected regions
+# Filter tcga_wgbs_genomic_region_mean_meth_change for selected regions
 tcga_wgbs_genomic_region_mean_meth_change = filter(tcga_wgbs_genomic_region_mean_meth_change, 
   region_type %in% c("Negative TMRs", "Positive TMRs", selected_genomic_features))
 
@@ -189,4 +191,5 @@ tcga_wgbs_feature_meth_change_plot =
     panel.grid.major.y = element_blank()) +
     guides(fill = "none")
 tcga_wgbs_feature_meth_change_plot
+saveRDS(tcga_wgbs_feature_meth_change_plot, "tcga_wgbs_feature_meth_change_plot.rds")
 ggsave(plot = tcga_wgbs_feature_meth_change_plot, filename = "../figures/figure6C.pdf", height = 9, width = 16)

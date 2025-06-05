@@ -6,8 +6,9 @@ library(ggplot2)
 # Load GRanges for Gencode 36 MANE transcripts for hg19
 gencode_mane_36_hg19 = readRDS("../auxillary_data/gencode_36_mane_transcripts_hg19_gr.rds")
 
-# Get TSS for transcripts
+# Get TSS for transcripts and expand
 gencode_tss_hg19 = resize(gencode_mane_36_hg19, 1, fix = "start")
+tss_flanking_regions = expand_granges(gencode_tss_hg19, upstream = 5000, downstream = 5000)
 
 # Load meth RSE for TCGA hg19
 tcga_meth_rse_hg19 = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylation_data/tcga_450k_array_hg19/")
@@ -18,7 +19,7 @@ names(deseq2_normalized_count_files) = gsub("_deseq_normalized_counts.tsv.gz", "
 
 # Calculate correlation for normal samples for each project
 # Took 3 hours with 5 cores
-for(project in names(deseq2_normalized_count_files)){
+for(project in names(deseq2_normalized_count_files)[2]){
   
   # Print name of current project
   message(paste("Starting", project))
@@ -42,7 +43,7 @@ for(project in names(deseq2_normalized_count_files)){
   cor_results = calculateMethSiteTranscriptCors(
     meth_rse = tcga_meth_rse_hg19, 
     transcript_expression_table = counts_table, samples_subset = common_normal_samples, 
-    tss_gr = gencode_tss_hg19, expand_upstream = 5000, expand_downstream = 5000, 
+    tss_gr = gencode_tss_hg19, tss_associated_gr = tss_flanking_regions,
     cor_method = "s", BPPARAM = BiocParallel::MulticoreParam(workers = 5))
   
   # Save correlation results
