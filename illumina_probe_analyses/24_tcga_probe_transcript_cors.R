@@ -20,47 +20,45 @@ names(deseq2_normalized_count_files) = gsub("_deseq_normalized_counts.tsv.gz", "
 
 # Calculate correlation for normal samples for each project
 # Took 3 hours with 5 cores
-# bpparam = BiocParallel::MulticoreParam(workers = 20)
-
-cl = makeCluster(6)
-registerDoParallel(cl, 6)
-
-bpparam = BiocParallel::SerialParam()
-system.time({foreach(project = names(deseq2_normalized_count_files)) %dopar% {
-  
-  # Print name of current project
-  message(paste("Starting", project))
-  
-  # Read in counts table for project
-  counts_table = data.frame(data.table::fread(deseq2_normalized_count_files[project]), row.names = 1)
-  
-  # Find common samples to tcga_meth_rse_hg19 and counts table
-  common_samples = intersect(names(counts_table), colnames(tcga_meth_rse_hg19))
-  
-  # Subset for normal samples
-  common_normal_samples = common_samples[endsWith(common_samples, "11")]
-  
-  # If there are less than 10 normal samples, skip to next iteration
-  if(length(common_normal_samples) < 10){
-    message("Less than 10 common normal samples so skipping to next project")
-    next
-  }
-  
-  # Calculate correlation results for normal samples
-  cor_results = methodical::calculateMethSiteTranscriptCors(
-    meth_rse = tcga_meth_rse_hg19, 
-    transcript_expression_table = counts_table, samples_subset = common_normal_samples, 
-    tss_gr = gencode_tss_hg19, tss_associated_gr = tss_flanking_regions,
-    cor_method = "s", BPPARAM = bpparam)
-  
-  # Save correlation results
-  saveRDS(cor_results, paste0("tcga_probe_cors/", project, "_normal_sample_cors.rds"))
-  
-}})
+# bpparam = BiocParallel::MulticoreParam(workers = 10)
+# 
+# 
+# system.time({foreach(project = names(deseq2_normalized_count_files)) %dopar% {
+#   
+#   # Print name of current project
+#   message(paste("Starting", project))
+#   
+#   # Read in counts table for project
+#   counts_table = data.frame(data.table::fread(deseq2_normalized_count_files[project]), row.names = 1)
+#   
+#   # Find common samples to tcga_meth_rse_hg19 and counts table
+#   common_samples = intersect(names(counts_table), colnames(tcga_meth_rse_hg19))
+#   
+#   # Subset for normal samples
+#   common_normal_samples = common_samples[endsWith(common_samples, "11")]
+#   
+#   # If there are less than 10 normal samples, skip to next iteration
+#   if(length(common_normal_samples) < 10){
+#     message("Less than 10 common normal samples so skipping to next project")
+#     next
+#   }
+#   
+#   # Calculate correlation results for normal samples
+#   cor_results = methodical::calculateMethSiteTranscriptCors(
+#     meth_rse = tcga_meth_rse_hg19, 
+#     transcript_expression_table = counts_table, samples_subset = common_normal_samples, 
+#     tss_gr = gencode_tss_hg19, tss_associated_gr = tss_flanking_regions,
+#     cor_method = "s", BPPARAM = bpparam)
+#   
+#   # Save correlation results
+#   saveRDS(cor_results, paste0("tcga_probe_cors/", project, "_normal_sample_cors.rds"))
+#   
+# }})
 
 # Calculate correlation for tumour samples for each project
 # Took 8 hours with 5 cores
-for(project in names(deseq2_normalized_count_files)){
+bpparam = BiocParallel::MulticoreParam(workers = 10)
+system.time({foreach(project = names(deseq2_normalized_count_files)) %do% {
   
   # Print name of current project
   message(paste("Starting", project))
@@ -85,16 +83,16 @@ for(project in names(deseq2_normalized_count_files)){
   }
   
   # Calculate correlation results for tumour samples
-  cor_results = calculateMethSiteTranscriptCors(
+  cor_results = methodical::calculateMethSiteTranscriptCors(
     meth_rse = tcga_meth_rse_hg19, 
     transcript_expression_table = counts_table, samples_subset = common_tumour_samples, 
-    tss_gr = gencode_tss_hg19, expand_upstream = 5000, expand_downstream = 5000, 
-    cor_method = "s", BPPARAM = BiocParallel::MulticoreParam(workers = 5))
+    tss_gr = gencode_tss_hg19, tss_associated_gr = tss_flanking_regions, 
+    cor_method = "s", BPPARAM = bpparam)
   
   # Save correlation results
   saveRDS(cor_results, paste0("tcga_probe_cors/", project, "_tumour_sample_cors.rds"))
   
-}
+}})
 
 # # Create a function which combines correlation results and creates summary plots
 # plot_cor_results = function(cor_results, title = NULL, breaks = 2500, results_dir){

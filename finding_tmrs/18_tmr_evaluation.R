@@ -3,7 +3,7 @@
 # Load required packages
 library(methodical)
 library(dplyr)
-#library(patchwork)
+library(patchwork)
 source("../auxillary_scripts/plotting_functions.R")
 
 # Load CPGEA methylation RSE and MCRPC RSE
@@ -34,17 +34,6 @@ system.time({cpgea_normal_tmrs_correlations_normal_samples = calculateRegionMeth
   genomic_region_transcripts = cpgea_normal_tmrs$ID, meth_rse = cpgea_meth_rse, transcript_expression_table = cpgea_kallisto_deseq2_counts, 
   cor_method = "s", BPPARAM = bpparam)})
 data.table::fwrite(cpgea_normal_tmrs_correlations_normal_samples, "tmr_evaluation_tables/cpgea_normal_tmrs_correlations_normal_samples.tsv.gz")
-
-# # Filter for correlated and uncorrelated TMRs
-# correlated_tmrs = filter(cpgea_normal_tmrs_correlations_normal_samples, q_val < 0.05)
-# uncorrelated_tmrs = filter(cpgea_normal_tmrs_correlations_normal_samples, q_val > 0.05)
-# boxplot(mean_tmr_coverage[uncorrelated_tmrs$genomic_region_name], mean_tmr_coverage[correlated_tmrs$genomic_region_name])
-# 
-# # Get the mean coverage for correlated and uncorrelated TMRs
-# system.time({tmr_coverage = summarizeRegionMethylation(meth_rse = cpgea_meth_rse, assay = 2, genomic_regions = cpgea_normal_tmrs, genomic_region_names = cpgea_normal_tmrs$tmr_name, BPPARAM = bpparam)})
-# system.time({tmr_meth = summarizeRegionMethylation(meth_rse = cpgea_meth_rse, assay = 1, genomic_regions = cpgea_normal_tmrs, genomic_region_names = cpgea_normal_tmrs$tmr_name, BPPARAM = bpparam)})
-# mean_tmr_coverage = rowMeans(tmr_coverage, na.rm = T)
-# boxplot(mean_tmr_coverage[uncorrelated_tmrs$genomic_region_name], mean_tmr_coverage[correlated_tmrs$genomic_region_name])
 
 # Took 1 minutes with 10 cores
 system.time({cpgea_tumour_tmrs_correlations_normal_samples = calculateRegionMethylationTranscriptCors(
@@ -182,8 +171,6 @@ plotlist = list(tmrs_5kb_bins_plot, tmr_stats_barplot, tmr_stats_heatmaps, corre
 supp_figure_10 = ggarrange(plotlist = plotlist, nrow = 5, labels = LETTERS[1:5], widths = 27, heights = c(9, 9, 9, 11.815, 11.815))
 ggsave(plot = supp_figure_10, "../figures/supp_figure10.pdf", width = 27, height = 50.63, limitsize = FALSE)
 
-#ggsave(plot = combined_violins_and_barplot, "../figures/supplementary_figure8D_and_E.pdf", width = 27, height = 23.63, limitsize = FALSE)
-
 # Count proportion of significant correlations for external TMRs 
 tmr_evaluation_tables_external = filter(tmr_evaluation_tables, samples != tmr_samples)
 sum(tmr_evaluation_tables_external$q_val < 0.05, na.rm = T)/sum(!is.na(tmr_evaluation_tables_external$q_val))
@@ -191,3 +178,25 @@ sum(tmr_evaluation_tables_external$q_val < 0.05, na.rm = T)/sum(!is.na(tmr_evalu
 # Count proportion of significant correlations for external TMRs involving prostate tumours and prostate metastases 
 tmr_evaluation_tables_external_cancer = filter(tmr_evaluation_tables_external, samples != "normal_samples" & tmr_samples != "normal_samples")
 sum(tmr_evaluation_tables_external_cancer$q_val < 0.05, na.rm = T)/sum(!is.na(tmr_evaluation_tables_external_cancer$q_val))
+
+### Evaluate cpgea_normal_tmrs_1_or_more_cpg. Took 7 minutes
+cpgea_normal_tmrs_1_or_more_cpg = readRDS("tmr_granges/cpgea_normal_tmrs_1_or_more_cpg_without_repeats.rds")
+bpparam = BiocParallel::MulticoreParam(workers = 2)
+system.time({cpgea_normal_tmrs_1_or_more_cpg_correlations_normal_samples = calculateRegionMethylationTranscriptCors(
+  genomic_regions = cpgea_normal_tmrs_1_or_more_cpg, genomic_region_names = cpgea_normal_tmrs_1_or_more_cpg$tmr_name, samples_subset = common_cpgea_normal_samples,
+  genomic_region_transcripts = cpgea_normal_tmrs_1_or_more_cpg$ID, meth_rse = cpgea_meth_rse, transcript_expression_table = cpgea_kallisto_deseq2_counts, 
+  cor_method = "s", BPPARAM = bpparam)})
+
+# Add direction and number of CpGs in TMRs
+cpgea_normal_tmrs_1_or_more_cpg_correlations_normal_samples$direction = cpgea_normal_tmrs_1_or_more_cpg $direction
+cpgea_normal_tmrs_1_or_more_cpg_correlations_normal_samples$cpg_count = cpgea_normal_tmrs_1_or_more_cpg $meth_site_count
+
+# Get mean correlation for negative and positive TMRs by number of CpGs
+mean_cor_by_number_of_cpgs = summarise(group_by(cpgea_normal_tmrs_1_or_more_cpg_correlations_normal_samples, direction, cpg_count), mean_cor = mean(cor, na.rm = T))
+
+# Make a scatter plot of CpG count and mean correlation
+cor_cpg_plot = ggplot(mean_cor_by_number_of_cpgs, aes(x = cpg_count, y = mean_cor, color = direction)) +
+  geom_point()
+cor_cpg_plot = customize_ggplot_theme(cor_cpg_plot, xlab = "Number of CpG Sites", ylab = "Mean TMR Correlation", 
+  colors = c("#A28CB1", "#D2C465")) + theme(legend.position = "top")
+ggsave(plot = cor_cpg_plot, "../figures/supp_figure2.pdf", width = 9, height = 9)

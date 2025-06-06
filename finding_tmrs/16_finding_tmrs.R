@@ -5,11 +5,20 @@ library(methodical)
 library(dplyr)
 library(ggplot2)
 
+# Get repeat ranges for hg38
+repeat_ranges = readRDS("../auxillary_data/repeatmasker_granges_ucsc.rds")
+
 # Create a BPPARAM object
 bpparam = BiocParallel::MulticoreParam(1)
 
 # Load methylation-correlation results for CPGEA normal. Took 3 minutes. 
 system.time({cpgea_normal_cor_results = readRDS("meth_transcript_cors/cpgea_normal_whole_gene_body_correlations.rds")})
+
+# Find TMRs for CPGEA normal samples with even a single CpG sites. Took 20 minutes with 1 core.
+system.time({cpgea_normal_tmrs_1_or_more_cpg = findTMRs(correlation_list = cpgea_normal_cor_results, 
+  p_adjust_method = "fdr", p_value_threshold = 0.05, min_meth_sites = 1, BPPARAM = bpparam)})
+cpgea_normal_tmrs_1_or_more_cpg = subsetByOverlaps(cpgea_normal_tmrs_1_or_more_cpg, repeat_ranges, invert = T)
+saveRDS(cpgea_normal_tmrs_1_or_more_cpg, "tmr_granges/cpgea_normal_tmrs_1_or_more_cpg_without_repeats.rds")
 
 # Find TMRs for CPGEA normal samples. Took 20 minutes with 1 core.
 system.time({cpgea_normal_tmrs = findTMRs(correlation_list = cpgea_normal_cor_results, 
@@ -43,9 +52,6 @@ tmr_list = list(
   mcrpc_tmrs_negative = mcrpc_tmrs[mcrpc_tmrs$direction == "Negative"],
   mcrpc_tmrs_positive = mcrpc_tmrs[mcrpc_tmrs$direction == "Positive"]
 )
-
-# Get repeat ranges for hg38
-repeat_ranges = readRDS("../auxillary_data/repeatmasker_granges_ucsc.rds")
 
 # Save all TMRs without repeats
 cpgea_normal_tmrs = subsetByOverlaps(cpgea_normal_tmrs, repeat_ranges, invert = T)
