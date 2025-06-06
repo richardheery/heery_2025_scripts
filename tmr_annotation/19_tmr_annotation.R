@@ -136,3 +136,65 @@ combined_annotation_plot = tmr_genomic_feature_annotation_plot / tmr_chromatin_s
   plot_layout(heights = c(1, 2), nrow = 2, ncol = 1) +
   plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 20))
 saveRDS(combined_annotation_plot, "combined_annotation_plot.rds")
+
+### Make plots for Roadmap TMRs
+
+# Find overlaps between Roadmap TMRs and regulatory features
+roadmap_tmr_annotation_overlaps = data.frame(findOverlaps(roadmap_tmrs, genome_annotation_hg38))
+roadmap_tmr_annotation_overlaps$roadmap_tmr_group = "Roadmap"
+roadmap_tmr_annotation_overlaps$direction = roadmap_tmrs$direction[roadmap_tmr_annotation_overlaps$queryHits]
+roadmap_tmr_annotation_overlaps$annotation = genome_annotation_hg38$region_type[roadmap_tmr_annotation_overlaps$subjectHits]
+
+# Make a table summarizing the overlaps
+roadmap_tmr_annotation_overlaps_summary = dplyr::summarise(group_by(roadmap_tmr_annotation_overlaps, roadmap_tmr_group, direction, annotation), count = n())
+
+# Normalize count by MB covered by the regulatory features
+roadmap_tmr_annotation_overlaps_summary$normalized_count = roadmap_tmr_annotation_overlaps_summary$count/annotation_widths[roadmap_tmr_annotation_overlaps_summary$annotation]*1e6
+
+# Convert region_type to a factor and give specified order
+roadmap_tmr_annotation_overlaps_summary = filter(roadmap_tmr_annotation_overlaps_summary, annotation %in% 
+    c("Background", "CpG Islands", "CpG Shores", "CpG Shelves", "Open Sea", "Predicted Promoter", "Predicted Enhancer", "Open Chromatin", "CTCF BS"))
+roadmap_tmr_annotation_overlaps_summary$annotation = factor(roadmap_tmr_annotation_overlaps_summary$annotation, 
+  c("Background", "CpG Islands", "CpG Shores", "CpG Shelves", "Open Sea", "Predicted Promoter", "Predicted Enhancer", "Open Chromatin", "CTCF BS"))
+roadmap_tmr_annotation_overlaps_summary = data.frame(tidyr::complete(tibble(roadmap_tmr_annotation_overlaps_summary), roadmap_tmr_group, annotation, direction, fill = list(normalized_count = 0, count = 0)))
+
+# Create a plot annotating TMRs and save
+roadmap_tmr_genomic_feature_annotation_plot = ggplot(roadmap_tmr_annotation_overlaps_summary, aes(x = roadmap_tmr_group, y = normalized_count, fill = direction)) +
+  geom_col(position = "dodge", colour = "black") 
+roadmap_tmr_genomic_feature_annotation_plot = customize_ggplot_theme(roadmap_tmr_genomic_feature_annotation_plot, title = NULL, 
+  xlab = "Dataset", ylab = "Number of TMRs per MB", fill_title = "TMR Direction", fill_colors = colour_list$purple_and_gold_light, x_labels_angle = 55, colors = "black",
+  facet = "annotation", facet_nrow = 1, facet_scales = "free_x", strip_text_size = 20, axis_text_size = 14, 
+  legend_title_size = 24, legend_text_size = 20, legend_key_size = 1.5) + 
+  theme(strip.background = element_blank(), plot.margin = margin(t = 0.5, unit = "cm"), axis.text.x = element_blank()) +
+  guides(linetype = guide_legend(override.aes = list(legend.text = element_text(size = 50))))
+roadmap_tmr_genomic_feature_annotation_plot
+
+# Find overlaps between Roadmap TMRs and chromatin states
+roadmap_tmr_state_overlaps = data.frame(findOverlaps(roadmap_tmrs, prostate_18_states_hg38_gr))
+roadmap_tmr_state_overlaps$roadmap_tmr_group = "Roadmap"
+roadmap_tmr_state_overlaps$direction = roadmap_tmrs$direction[roadmap_tmr_state_overlaps$queryHits]
+roadmap_tmr_state_overlaps$chromatin_state = prostate_18_states_hg38_gr$region_type[roadmap_tmr_state_overlaps$subjectHits]
+
+# Make a table summarizing the overlaps
+roadmap_tmr_state_overlaps_summary = summarise(group_by(roadmap_tmr_state_overlaps, roadmap_tmr_group, direction, chromatin_state), count = n())
+
+# Normalize count by MB covered by the chromatin state
+roadmap_tmr_state_overlaps_summary$normalized_count = roadmap_tmr_state_overlaps_summary$count/chromatin_state_widths[roadmap_tmr_state_overlaps_summary$chromatin_state]*1e6
+
+# Create a plot annotating TMRs and save
+roadmap_tmr_chromatin_state_annotation_plot = ggplot(roadmap_tmr_state_overlaps_summary, aes(x = roadmap_tmr_group, y = normalized_count, fill = direction)) +
+  geom_col(position = "dodge", colour = "black")
+roadmap_tmr_chromatin_state_annotation_plot = customize_ggplot_theme(roadmap_tmr_chromatin_state_annotation_plot, title = NULL, 
+  xlab = NULL, ylab = "Number of TMRs per MB", fill_title = "TMR Direction", fill_colors = colour_list$purple_and_gold_light, x_labels_angle = 55, colors = "black",
+  facet = "chromatin_state", facet_nrow = 2, facet_scales = "free_x", strip_text_size = 17, axis_text_size = 16, axis_title_size = 24, legend_key_size = 1.5, 
+  legend_title_size = 24, legend_text_size = 20) + 
+  theme(strip.background = element_blank(), plot.margin = margin(t = 0.5, unit = "cm"), axis.text.x = element_blank()) +
+  guides(linetype = guide_legend(override.aes = list(legend.text = element_text(size = 50)))) +
+  facet_wrap(~chromatin_state, drop = F, nrow = 2)
+roadmap_tmr_chromatin_state_annotation_plot
+
+### Combine The TMR distribution plots and TMR annotation plots 
+combined_roadmap_annotation_plot = roadmap_tmr_genomic_feature_annotation_plot / roadmap_tmr_chromatin_state_annotation_plot +
+  plot_layout(heights = c(1, 2), nrow = 2, ncol = 1) +
+  plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 20))
+ggsave(plot = combined_roadmap_annotation_plot, filename = "../figures/supp_figure14.pdf", width = 27, height = 27)

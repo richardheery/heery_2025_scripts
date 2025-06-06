@@ -117,7 +117,7 @@ system.time({roadmap_methrix = methrix::read_bedgraphs(roadmap_wgbs_files, ref_c
 roadmap_methrix = methrix::load_HDF5_methrix("roadmap_methrix_h5/")
 system.time({roadmap_meth_rse = methodical::methrixToRSE(roadmap_methrix)})
 system.time({HDF5Array::quickResaveHDF5SummarizedExperiment(roadmap_meth_rse)})
-file.rename("roadmap_methrix_h5", "roadmap_meth_rse_hg38/")
+file.rename("roadmap_methrix_h5", "../methylation_data/roadmap_meth_rse_hg38/")
 
 ### Create table with gene counts
 
@@ -140,7 +140,7 @@ row.names(gene_counts) = gsub("\\.[0-9]*", "", row.names(gene_counts))
 
 # Save table
 data.table::fwrite(tibble::rownames_to_column(gene_counts, "gene_id"), 
-  "roadmap_gene_estimated_gene_counts.tsv.gz", sep = "\t", quote = F)
+  "rnaseq_data/roadmap_gene_estimated_gene_counts.tsv.gz", sep = "\t", quote = F)
 
 # Create supplementary table with file details
 

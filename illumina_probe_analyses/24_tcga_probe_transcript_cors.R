@@ -2,6 +2,7 @@
 library(methodical)
 library(dplyr)
 library(ggplot2)
+library(doParallel)
 
 # Load GRanges for Gencode 36 MANE transcripts for hg19
 gencode_mane_36_hg19 = readRDS("../auxillary_data/gencode_36_mane_transcripts_hg19_gr.rds")
@@ -19,7 +20,13 @@ names(deseq2_normalized_count_files) = gsub("_deseq_normalized_counts.tsv.gz", "
 
 # Calculate correlation for normal samples for each project
 # Took 3 hours with 5 cores
-for(project in names(deseq2_normalized_count_files)[2]){
+# bpparam = BiocParallel::MulticoreParam(workers = 20)
+
+cl = makeCluster(6)
+registerDoParallel(cl, 6)
+
+bpparam = BiocParallel::SerialParam()
+system.time({foreach(project = names(deseq2_normalized_count_files)) %dopar% {
   
   # Print name of current project
   message(paste("Starting", project))
@@ -40,16 +47,16 @@ for(project in names(deseq2_normalized_count_files)[2]){
   }
   
   # Calculate correlation results for normal samples
-  cor_results = calculateMethSiteTranscriptCors(
+  cor_results = methodical::calculateMethSiteTranscriptCors(
     meth_rse = tcga_meth_rse_hg19, 
     transcript_expression_table = counts_table, samples_subset = common_normal_samples, 
     tss_gr = gencode_tss_hg19, tss_associated_gr = tss_flanking_regions,
-    cor_method = "s", BPPARAM = BiocParallel::MulticoreParam(workers = 5))
+    cor_method = "s", BPPARAM = bpparam)
   
   # Save correlation results
   saveRDS(cor_results, paste0("tcga_probe_cors/", project, "_normal_sample_cors.rds"))
   
-}
+}})
 
 # Calculate correlation for tumour samples for each project
 # Took 8 hours with 5 cores

@@ -93,3 +93,20 @@ cpgea_normal_mane_tmrs_introns_exons_plot_normalized = plot_tmr_regions(tmrs = c
   transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs for MANE Transcripts in Normal Prostate", normalize = T)
 cpgea_normal_mane_tmrs_introns_exons_plot_normalized
 ggsave(plot = cpgea_normal_mane_tmrs_introns_exons_plot_normalized, "../figures/supp_figure12.pdf", width = 16, height = 9)
+
+# Load Roadmap TMRs without repeats
+roadmap_tmrs = readRDS("tmr_granges/roadmap_tmrs.rds")
+
+# Bin relative TMRs for roadmap TMRs
+roadmap_tmrs_distributions = bin_relative_tmrs(roadmap_tmrs, width = 4750)
+
+# Make distribution plots for Roadmap TMRs
+roadmap_tmrs_introns_exons_plot = plot_tmr_regions(tmrs = roadmap_tmrs, 
+  transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs in Normal Prostate", normalize = F)
+roadmap_tmrs_introns_exons_plot_normalized = plot_tmr_regions(tmrs = roadmap_tmrs, 
+  transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs in Normal Prostate", normalize = T)
+
+# Combine plots and save
+combined_roadmap_tmrs_introns_exons_plot = ggpubr::ggarrange(roadmap_tmrs_introns_exons_plot, roadmap_tmrs_introns_exons_plot_normalized, 
+  align = "hv", nrow = 2, labels = c("A", "B"), common.legend = T, legend = "right")
+ggsave(plot = combined_roadmap_tmrs_introns_exons_plot, "../figures/supp_figure12.pdf", width = 16, height = 9)
