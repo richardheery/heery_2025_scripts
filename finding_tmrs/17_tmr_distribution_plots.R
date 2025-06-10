@@ -63,10 +63,13 @@ cpgea_normal_tmrs_introns_exons_plot = plot_tmr_regions(tmrs = cpgea_normal_tmrs
   transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs in Normal Prostate", normalize = F)
 cpgea_normal_tmrs_introns_exons_plot_normalized = plot_tmr_regions(tmrs = cpgea_normal_tmrs, 
   transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs in Normal Prostate", normalize = T)
-cpgea_normal_tmrs_introns_exons_plot_normalized
-#ggsave(plot = cpgea_normal_tmrs_introns_exons_plot, "../figures/supplementary_figure9.pdf", width = 16, height = 9)
-ggsave(plot = ggarrange(cpgea_normal_tmrs_introns_exons_plot_normalized, labels = "D"), 
-  "../figures/figure4D.pdf", width = 20.57, height = 11.57)
+combined_normal_plots = ggarrange(plotlist = list(cpgea_normal_tmrs_introns_exons_plot, cpgea_normal_tmrs_introns_exons_plot_normalized), 
+  nrow = 2, labels = c("C", "D"), common.legend = T, legend = "right")
+
+# Load TMR example plots and comboine with combined_normal_plots to make figure 5
+combined_tmr_correlation_plots = readRDS("combined_tmr_correlation_plots.rds")
+figure5 = ggarrange(combined_tmr_correlation_plots, combined_normal_plots, heights = c(10.086, 7.867), nrow = 2)
+ggsave(plot = figure5, "../figures/figure5.pdf", width = 20.828, height = 35.945)
 
 # Create absolute count and normalized counts for CPGEA tumour samples
 cpgea_tumour_tmrs_introns_exons_plot = plot_tmr_regions(tmrs = cpgea_tumour_tmrs, 
