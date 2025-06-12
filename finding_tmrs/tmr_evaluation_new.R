@@ -21,9 +21,9 @@ common_mcrpc_samples = intersect(names(mcrpc_kallisto_deseq2_counts), colnames(m
 # Get TMR GRanges
 # cpgea_normal_tmrs = rtracklayer::import.bed("tmr_bed_files/normal_prostate_tmrs.bed")
 # cpgea_normal_tmrs$ID = gsub("_.*", "", cpgea_normal_tmrs$tmr_name)
-cpgea_normal_tmrs = readRDS("new_tmr_granges/cpgea_normal_tmrs.rds")
-cpgea_tumour_tmrs = readRDS("new_tmr_granges/cpgea_tumour_tmrs.rds")
-mcrpc_tmrs = readRDS("new_tmr_granges/mcrpc_tmrs.rds")
+cpgea_normal_tmrs = readRDS("tmr_granges/cpgea_normal_tmrs_with_repeats.rds")
+cpgea_tumour_tmrs = readRDS("tmr_granges/cpgea_tumour_tmrs_with_repeats.rds")
+mcrpc_tmrs = readRDS("tmr_granges/mcrpc_tmrs_with_repeats.rds")
 
 ### Evaluate TMR correlations in normal prostate samples
 
@@ -35,7 +35,7 @@ system.time({cpgea_normal_tmrs_correlations_normal_samples = calculateRegionMeth
   genomic_regions = cpgea_normal_tmrs, genomic_region_names = cpgea_normal_tmrs$tmr_name, samples_subset = common_cpgea_normal_samples,
   genomic_region_transcripts = cpgea_normal_tmrs$ID, meth_rse = cpgea_meth_rse, transcript_expression_table = cpgea_kallisto_deseq2_counts, 
   cor_method = "s", BPPARAM = bpparam)})
-data.table::fwrite(cpgea_normal_tmrs_correlations_normal_samples, "tmr_evaluation_tables_new/cpgea_normal_tmrs_correlations_normal_samples.tsv.gz")
+data.table::fwrite(cpgea_normal_tmrs_correlations_normal_samples, "tmr_evaluation_tables_repeats/cpgea_normal_tmrs_correlations_normal_samples.tsv.gz")
 
 # # Filter for correlated and uncorrelated TMRs
 # correlated_tmrs = filter(cpgea_normal_tmrs_correlations_normal_samples, q_val < 0.05)
@@ -53,14 +53,14 @@ system.time({cpgea_tumour_tmrs_correlations_normal_samples = calculateRegionMeth
   genomic_regions = cpgea_tumour_tmrs, genomic_region_names = cpgea_tumour_tmrs$tmr_name, samples_subset = common_cpgea_normal_samples,
   genomic_region_transcripts = cpgea_tumour_tmrs$ID, meth_rse = cpgea_meth_rse, transcript_expression_table = cpgea_kallisto_deseq2_counts, 
   cor_method = "s", BBPARAM = bpparam)})
-data.table::fwrite(cpgea_tumour_tmrs_correlations_normal_samples, "tmr_evaluation_tables_new/cpgea_tumour_tmrs_correlations_normal_samples.tsv.gz")
+data.table::fwrite(cpgea_tumour_tmrs_correlations_normal_samples, "tmr_evaluation_tables_repeats/cpgea_tumour_tmrs_correlations_normal_samples.tsv.gz")
 
 # Took 1 minutes with 10 cores
 system.time({mcrpc_tmrs_correlations_normal_samples = calculateRegionMethylationTranscriptCors(
   genomic_regions = mcrpc_tmrs, genomic_region_names = mcrpc_tmrs$tmr_name, samples_subset = common_cpgea_normal_samples,
   genomic_region_transcripts = mcrpc_tmrs$ID, meth_rse = cpgea_meth_rse, transcript_expression_table = cpgea_kallisto_deseq2_counts, 
   cor_method = "s", BBPARAM = bpparam)})
-data.table::fwrite(mcrpc_tmrs_correlations_normal_samples, "tmr_evaluation_tables_new/mcrpc_tmrs_correlations_normal_samples.tsv.gz")
+data.table::fwrite(mcrpc_tmrs_correlations_normal_samples, "tmr_evaluation_tables_repeats/mcrpc_tmrs_correlations_normal_samples.tsv.gz")
 
 ### Evaluate TMR correlations in prostate tumour samples
 
@@ -69,21 +69,21 @@ system.time({cpgea_normal_tmrs_correlations_tumour_samples = calculateRegionMeth
   genomic_regions = cpgea_normal_tmrs, genomic_region_names = cpgea_normal_tmrs$tmr_name, samples_subset = common_cpgea_tumour_samples,
   genomic_region_transcripts = cpgea_normal_tmrs$ID, meth_rse = cpgea_meth_rse, transcript_expression_table = cpgea_kallisto_deseq2_counts, 
   cor_method = "s", BBPARAM = bpparam)})
-data.table::fwrite(cpgea_normal_tmrs_correlations_tumour_samples, "tmr_evaluation_tables_new/cpgea_normal_tmrs_correlations_tumour_samples.tsv.gz")
+data.table::fwrite(cpgea_normal_tmrs_correlations_tumour_samples, "tmr_evaluation_tables_repeats/cpgea_normal_tmrs_correlations_tumour_samples.tsv.gz")
 
 # Took 1 minutes with 10 cores
 system.time({cpgea_tumour_tmrs_correlations_tumour_samples = calculateRegionMethylationTranscriptCors(
   genomic_regions = cpgea_tumour_tmrs, genomic_region_names = cpgea_tumour_tmrs$tmr_name, samples_subset = common_cpgea_tumour_samples,
   genomic_region_transcripts = cpgea_tumour_tmrs$ID, meth_rse = cpgea_meth_rse, transcript_expression_table = cpgea_kallisto_deseq2_counts, 
   cor_method = "s", BBPARAM = bpparam)})
-data.table::fwrite(cpgea_tumour_tmrs_correlations_tumour_samples, "tmr_evaluation_tables_new/cpgea_tumour_tmrs_correlations_tumour_samples.tsv.gz")
+data.table::fwrite(cpgea_tumour_tmrs_correlations_tumour_samples, "tmr_evaluation_tables_repeats/cpgea_tumour_tmrs_correlations_tumour_samples.tsv.gz")
 
 # Took 1 minutes with 10 cores
 system.time({mcrpc_tmrs_correlations_tumour_samples = calculateRegionMethylationTranscriptCors(
   genomic_regions = mcrpc_tmrs, genomic_region_names = mcrpc_tmrs$tmr_name, samples_subset = common_cpgea_tumour_samples,
   genomic_region_transcripts = mcrpc_tmrs$ID, meth_rse = cpgea_meth_rse, transcript_expression_table = cpgea_kallisto_deseq2_counts, 
   cor_method = "s", BBPARAM = bpparam)})
-data.table::fwrite(mcrpc_tmrs_correlations_tumour_samples, "tmr_evaluation_tables_new/mcrpc_tmrs_correlations_tumour_samples.tsv.gz")
+data.table::fwrite(mcrpc_tmrs_correlations_tumour_samples, "tmr_evaluation_tables_repeats/mcrpc_tmrs_correlations_tumour_samples.tsv.gz")
 
 ### Evaluate TMR correlations in metastases samples
 
@@ -92,18 +92,18 @@ system.time({cpgea_normal_tmrs_correlations_metastases_samples = calculateRegion
   genomic_regions = cpgea_normal_tmrs, genomic_region_names = cpgea_normal_tmrs$tmr_name, samples_subset = common_mcrpc_samples,
   genomic_region_transcripts = cpgea_normal_tmrs$ID, meth_rse = mcrpc_meth_rse, transcript_expression_table = mcrpc_kallisto_deseq2_counts, 
   cor_method = "s", BBPARAM = bpparam)})
-data.table::fwrite(cpgea_normal_tmrs_correlations_metastases_samples, "tmr_evaluation_tables_new/cpgea_normal_tmrs_correlations_metastases_samples.tsv.gz")
+data.table::fwrite(cpgea_normal_tmrs_correlations_metastases_samples, "tmr_evaluation_tables_repeats/cpgea_normal_tmrs_correlations_metastases_samples.tsv.gz")
 
 # Took 1 minutes with 10 cores
 system.time({cpgea_tumour_tmrs_correlations_metastases_samples = calculateRegionMethylationTranscriptCors(
   genomic_regions = cpgea_tumour_tmrs, genomic_region_names = cpgea_tumour_tmrs$tmr_name, samples_subset = common_mcrpc_samples,
   genomic_region_transcripts = cpgea_tumour_tmrs$ID, meth_rse = mcrpc_meth_rse, transcript_expression_table = mcrpc_kallisto_deseq2_counts, 
   cor_method = "s", BBPARAM = bpparam)})
-data.table::fwrite(cpgea_tumour_tmrs_correlations_metastases_samples, "tmr_evaluation_tables_new/cpgea_tumour_tmrs_correlations_metastases_samples.tsv.gz")
+data.table::fwrite(cpgea_tumour_tmrs_correlations_metastases_samples, "tmr_evaluation_tables_repeats/cpgea_tumour_tmrs_correlations_metastases_samples.tsv.gz")
 
 # Took 1 minutes with 10 cores
 system.time({mcrpc_tmrs_correlations_metastases_samples = calculateRegionMethylationTranscriptCors(
   genomic_regions = mcrpc_tmrs, genomic_region_names = mcrpc_tmrs$tmr_name, samples_subset = common_mcrpc_samples,
   genomic_region_transcripts = mcrpc_tmrs$ID, meth_rse = mcrpc_meth_rse, transcript_expression_table = mcrpc_kallisto_deseq2_counts, 
   cor_method = "s", BBPARAM = bpparam)})
-data.table::fwrite(mcrpc_tmrs_correlations_metastases_samples, "tmr_evaluation_tables_new/mcrpc_tmrs_correlations_metastases_samples.tsv.gz")
+data.table::fwrite(mcrpc_tmrs_correlations_metastases_samples, "tmr_evaluation_tables_repeats/mcrpc_tmrs_correlations_metastases_samples.tsv.gz")

@@ -1,13 +1,44 @@
+# Load required packages
+library(GenomicRanges)
+library(genomicTools)
+source("../auxillary_scripts/plotting_functions.R")
+source("../auxillary_scripts/tmr_plot_functions.R")
+source("../auxillary_scripts/granges_functions.R")
+
+# Get Granges for transcripts
+transcripts_gr = readRDS("../auxillary_data/pc_transcripts_gr.rds")[readRDS("../auxillary_data/cage_supported_gencode_tss.rds")$ID]
+transcripts_gr = methodical::expand_granges(transcripts_gr, 50000, 50000)
+
+# Get repeats 
+repeats = readRDS("../auxillary_data/repeatmasker_granges_ucsc.rds")
+names(repeats) = paste0("region_", seq_along(repeats))
+
+# Get the mapability score for repeats
+repeat_mappability_scores = genomicTools::bigwig_summarize_over_regions(bw_filepaths = "~/genomes/human/bismap_hg38/k100.bismap.bw",
+  gr = repeats, statistic = "mean0", ncores = 1, bed_filepath = NULL, column_names = NULL)
+
+repeats$mappability_score = repeat_mappability_scores$k100.bismap
+
+
+repeats = subsetByOverlaps(repeats, transcripts_gr)
+
+# Make lists of repeat classes, families and subfamilies
+repeat_class_grl = split(repeats, repeats$class)
+repeat_families_grl = split(repeats, repeats$family)
+
+repeat_subfamilies_grl = split(repeats[repeats$class != "Simple_repeat"], repeats[repeats$class != "Simple_repeat"]$name)
+
+# Get TMRs
 cpgea_normal_tmrs = readRDS("tmr_granges/cpgea_normal_tmrs.rds")
 cpgea_normal_tmrs_repeats = readRDS("tmr_granges/cpgea_normal_tmrs_with_repeats.rds")
-cpgea_normal_tmrs_repeats_50bk = readRDS("tmr_granges/cpgea_normal_tmrs_50kb.rds")
-cpgea_tumour_tmrs_repeats_50bk  = readRDS("tmr_granges/cpgea_tumour_tmrs_50kb.rds")
-#cpgea_tumour_tmrs = readRDS("tmr_granges/cpgea_tumour_tmrs.rds")
-#mcrpc_tmrs = readRDS("tmr_granges/mcrpc_tmrs.rds")
-repeats = readRDS("../auxillary_data/repeatmasker_granges_ucsc.rds")
-repeat_class_grl = split(repeats, repeats$class)
-repeat_family_grl = split(repeats, repeats$family)
-repeat_subfamilies_grl = split(repeats[repeats$class != "Simple_repeat"], repeats[repeats$class != "Simple_repeat"]$name)
+cpgea_normal_tmrs_repeats_50kb = readRDS("tmr_granges/cpgea_normal_tmrs_50kb.rds")
+cpgea_tumour_tmrs_repeats_50kb  = readRDS("tmr_granges/cpgea_tumour_tmrs_50kb.rds")
+names(cpgea_tumour_tmrs_repeats_50kb) = cpgea_tumour_tmrs_repeats_50kb$tmr_name
+
+# Get the maping for TMRs
+tmr_mappability_scores = genomicTools::bigwig_summarize_over_regions(bw_filepaths = "~/genomes/human/bismap_hg38/k100.bismap.bw",
+  gr = cpgea_tumour_tmrs_repeats_50kb, statistic = "mean0", ncores = 1, bed_filepath = NULL, column_names = NULL)
+cpgea_tumour_tmrs_repeats_50kb$mapping = tmr_mappability_scores$k100.bismap
 
 length(subsetByOverlaps(cpgea_normal_tmrs_repeats , repeats, invert = T))
 
@@ -63,19 +94,38 @@ plot_tmrs = function(tmrs){
   
 }
 
-family_overlaps = sapply(repeat_families_grl, function(x) genomicTools::calculate_regions_intersections(gr1 = cpgea_tumour_tmrs_repeats_50bk, x, overlap_measure = "jaccard"))
+plot_tmrs(cpgea_tumour_tmrs_repeats_50kb)
+plot_tmrs(subsetByOverlaps(cpgea_tumour_tmrs_repeats_50kb, bad, invert = T))
+plot_tmrs(subsetByOverlaps(cpgea_tumour_tmrs_repeats_50kb, repeats, invert = T))
+
+plot_tmrs(tmrs = cpgea_tumour_tmrs_repeats_50kb[cpgea_tumour_tmrs_repeats_50kb$mapping < 1])
+plot_tmrs(tmrs = cpgea_tumour_tmrs_repeats_50kb[cpgea_tumour_tmrs_repeats_50kb$mapping == 1])
+
+class_overlaps = sapply(repeat_class_grl, function(x) genomicTools::calculate_regions_intersections(gr1 = cpgea_tumour_tmrs_repeats_50kb, x, overlap_measure = "jaccard"))
+options(scipen = 30)
+sort(class_overlaps)
+barplot(sort(class_overlaps))
+
+family_overlaps = sapply(repeat_families_grl, function(x) genomicTools::calculate_regions_intersections(gr1 = cpgea_tumour_tmrs_repeats_50kb, x, overlap_measure = "jaccard"))
+sort(family_overlaps)
 barplot(sort(family_overlaps))
 
-subfamily_overlaps = sapply(repeat_subfamilies_grl, function(x) genomicTools::calculate_regions_intersections(gr1 = cpgea_tumour_tmrs_repeats_50bk, x, overlap_measure = "jaccard"))
+subfamily_overlaps = sapply(repeat_subfamilies_grl, function(x) genomicTools::calculate_regions_intersections(gr1 = cpgea_tumour_tmrs_repeats_50kb, x, overlap_measure = "jaccard"))
 barplot(sort(subfamily_overlaps))
 
 
-names(cpgea_tumour_tmrs_repeats_50bk) = cpgea_tumour_tmrs_repeats_50bk$tmr_name
-cpgea_tumour_tmrs_repeats_50kb_props = individual_proportion_overlaps(cpgea_tumour_tmrs_repeats_50bk, repeats)
+names(cpgea_tumour_tmrs_repeats_50kb) = cpgea_tumour_tmrs_repeats_50kb$tmr_name
+cpgea_tumour_tmrs_repeats_50kb_props = individual_proportion_overlaps(cpgea_tumour_tmrs_repeats_50kb, repeats)
 
 x = seq(0, 1, 0.1)
-plots = lapply(x, function(y) plot_tmrs(tmrs = cpgea_tumour_tmrs_repeats_50bk[cpgea_tumour_tmrs_repeats_50kb_props$overlap <= y]))
+plots = lapply(x, function(y) plot_tmrs(tmrs = cpgea_tumour_tmrs_repeats_50kb[cpgea_tumour_tmrs_repeats_50kb_props$overlap <= y]))
 plotR::pdf_save(plots, filename = "~/temp/50kb_plots.pdf")
-plot_tmrs(tmrs = cpgea_tumour_tmrs_repeats_50bk[cpgea_tumour_tmrs_repeats_50kb_props$overlap < 0.01])
+plot_tmrs(tmrs = cpgea_tumour_tmrs_repeats_50kb[cpgea_tumour_tmrs_repeats_50kb_props$overlap < 0.01])
 
-  
+# Read in bsimap bedGraph
+bismap_bed = data.table::fread("k100.bismap.bedGraph")
+names(bismap_bed) = c("seqnames", "start", "end", "score")
+bismap_gr = makeGRangesFromDataFrame(bismap_bed, starts.in.df.are.0based = T, keep.extra.columns = T)
+saveRDS(bismap_gr, "~/genomes/human/bismap_hg38/bismap_gr.rds")
+bismap_gr = readRDS("~/genomes/human/bismap_hg38/bismap_gr.rds")
+bad = bismap_gr[bismap_gr$score < 1]
