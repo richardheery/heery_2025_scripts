@@ -10,7 +10,39 @@ source("../auxillary_scripts/plotting_functions.R")
 source("../auxillary_scripts/tmr_plot_functions.R")
 source("../auxillary_scripts/granges_functions.R")
 
-# Load TMRs filtered for CAGE supported TSS not overlapping repeats
+### Make distribution plots for unfiltered TMRs within 5 KB
+
+# Load unfiltered TMR within 5 KB 
+cpgea_normal_tmrs_unfiltered = readRDS("tmr_granges/cpgea_normal_tmrs_unfiltered.rds")
+cpgea_tumour_tmrs_unfiltered = readRDS("tmr_granges/cpgea_tumour_tmrs_unfiltered.rds")
+mcrpc_tmrs_unfiltered = readRDS("tmr_granges/mcrpc_tmrs_unfiltered.rds")
+
+# Bin relative TMRs for CPGEA Normal, CPGEA Tumour and MCRPC in 5KB
+cpgea_normal_5kb_tmr_distributions_unfiltered = bin_relative_tmrs(cpgea_normal_tmrs_unfiltered, width = 4750)
+cpgea_tumour_5kb_tmr_distributions_unfiltered = bin_relative_tmrs(cpgea_tumour_tmrs_unfiltered, width = 4750)
+mcrpc_tmr_5kb_distributions_unfiltered = bin_relative_tmrs(mcrpc_tmrs_unfiltered, width = 4750)
+
+# Combine TMR distributions
+combined_5kb_tmr_distributions_unfiltered = bind_rows(
+  cpgea_normal = cpgea_normal_5kb_tmr_distributions, 
+  cpgea_tumour = cpgea_tumour_5kb_tmr_distributions,
+  mcrpc = mcrpc_tmr_5kb_distributions, .id = "dataset"
+  )
+
+# Make a plot of the TMR distrutions in the 3 data sets and save
+tmrs_5kb_bins_plot_unfiltered = ggplot(combined_5kb_tmr_distributions_unfiltered, aes(x = bin_center, y = value, fill = variable)) +
+  geom_col(position = "dodge")
+tmrs_5kb_bins_plot_unfiltered = customize_ggplot_theme(plot = tmrs_5kb_bins_plot_unfiltered, base_theme = theme_bw(), xlab = "Distance to TSS (bp)", ylab = "Number of TMRs",
+  title = NULL, fill_title = "TMR Direction", fill_colors = colour_list$purple_and_gold_light, axis_text_size = 14,
+  fill_labels = c("Negative", "Positive"), scale_x = scale_x_continuous(breaks = seq(-4000, 4000, 2000), expand = c(0, 0), labels = scales::comma),
+  facet = "dataset", facet_nrow = 1, facet_scales = "fixed", facet_labels = c("Normal Prostate", "Prostate Tumours", "Prostate Metastases"), strip_text_size = 18) + 
+  theme(strip.background = element_blank(), plot.margin = margin(b = 0.5, unit = "cm")) +
+  geom_vline(xintercept = 0, linetype = "dotted")
+tmrs_5kb_bins_plot_unfiltered
+
+# Make distribution plots after removal of TMRs overlapping poorly mappable regions
+
+# Load filtered TMRs
 cpgea_normal_tmrs = readRDS("tmr_granges/cpgea_normal_tmrs.rds")
 cpgea_tumour_tmrs = readRDS("tmr_granges/cpgea_tumour_tmrs.rds")
 mcrpc_tmrs = readRDS("tmr_granges/mcrpc_tmrs.rds")
@@ -39,6 +71,70 @@ tmrs_5kb_bins_plot = customize_ggplot_theme(plot = tmrs_5kb_bins_plot, base_them
 tmrs_5kb_bins_plot
 saveRDS(tmrs_5kb_bins_plot, "tmrs_5kb_bins_plot.rds")
 ggsave(plot = tmrs_5kb_bins_plot , "../figures/supplementary_figure10A.pdf",  width = 27, height = 9)
+
+### Make distribution plots for unfiltered TMRs within 50 KB
+
+# # Load unfiltered TMR within 50 KB 
+cpgea_normal_tmrs_50kb_unfiltered = readRDS("tmr_granges/cpgea_normal_tmrs_50kb_unfiltered.rds")
+cpgea_tumour_tmrs_50kb_unfiltered = readRDS("tmr_granges/cpgea_tumour_tmrs_50kb_unfiltered.rds")
+mcrpc_tmrs_50kb_unfiltered = readRDS("tmr_granges/mcrpc_tmrs_50kb_unfiltered.rds")
+
+# Bin relative TMRs for CPGEA Normal, CPGEA Tumour and MCRPC in 50kb
+cpgea_normal_50kb_tmr_distributions_unfiltered = bin_relative_tmrs(cpgea_normal_tmrs_50kb_unfiltered, width = 49750)
+cpgea_tumour_50kb_tmr_distributions_unfiltered = bin_relative_tmrs(cpgea_tumour_tmrs_50kb_unfiltered, width = 49750)
+mcrpc_tmr_50kb_distributions_unfiltered = bin_relative_tmrs(mcrpc_tmrs_50kb_unfiltered, width = 49750)
+
+# Combine TMR distributions
+combined_50kb_tmr_distributions_unfiltered = bind_rows(
+  cpgea_normal = cpgea_normal_50kb_tmr_distributions_unfiltered, 
+  cpgea_tumour = cpgea_tumour_50kb_tmr_distributions_unfiltered,
+  mcrpc = mcrpc_tmr_50kb_distributions_unfiltered, .id = "dataset"
+  )
+
+# Make a plot of the TMR distrutions in the 3 data sets and save
+tmrs_50kb_bins_plot_unfiltered = ggplot(combined_50kb_tmr_distributions_unfiltered, aes(x = bin_center, y = value, fill = variable)) +
+  geom_col(position = "dodge")
+tmrs_50kb_bins_plot_unfiltered = customize_ggplot_theme(plot = tmrs_50kb_bins_plot_unfiltered, base_theme = theme_bw(), xlab = "Distance to TSS (bp)", ylab = "Number of TMRs",
+  title = NULL, fill_title = "TMR Direction", fill_colors = colour_list$purple_and_gold_light, axis_text_size = 14,
+  fill_labels = c("Negative", "Positive"), scale_x = scale_x_continuous(breaks = seq(-40000, 40000, 20000), expand = c(0, 0), labels = scales::comma),
+  facet = "dataset", facet_nrow = 1, facet_scales = "fixed", facet_labels = c("Normal Prostate", "Prostate Tumours", "Prostate Metastases"), strip_text_size = 18) + 
+  theme(strip.background = element_blank(), plot.margin = margin(b = 0.5, unit = "cm")) +
+  geom_vline(xintercept = 0, linetype = "dotted")
+tmrs_50kb_bins_plot_unfiltered
+
+# Make distribution plots after removal of TMRs overlapping poorly mappable regions
+
+# Load filtered TMRs within 50KB
+cpgea_normal_tmrs_50kb = readRDS("tmr_granges/cpgea_normal_tmrs_50kb.rds")
+cpgea_tumour_tmrs_50kb = readRDS("tmr_granges/cpgea_tumour_tmrs_50kb.rds")
+mcrpc_tmrs_50kb = readRDS("tmr_granges/mcrpc_tmrs_50kb.rds")
+
+# Bin relative TMRs for CPGEA Normal, CPGEA Tumour and MCRPC in 50kb
+cpgea_normal_50kb_tmr_distributions = bin_relative_tmrs(cpgea_normal_tmrs_50kb, width = 49750)
+cpgea_tumour_50kb_tmr_distributions = bin_relative_tmrs(cpgea_tumour_tmrs_50kb, width = 49750)
+mcrpc_tmr_50kb_distributions = bin_relative_tmrs(mcrpc_tmrs_50kb, width = 49750)
+
+# Combine TMR distributions
+combined_50kb_tmr_distributions = bind_rows(
+  cpgea_normal = cpgea_normal_50kb_tmr_distributions, 
+  cpgea_tumour = cpgea_tumour_50kb_tmr_distributions,
+  mcrpc = mcrpc_tmr_50kb_distributions, .id = "dataset"
+  )
+
+# Make a plot of the TMR distrutions in the 3 data sets and save
+tmrs_50kb_bins_plot = ggplot(combined_50kb_tmr_distributions, aes(x = bin_center, y = value, fill = variable)) +
+  geom_col(position = "dodge")
+tmrs_50kb_bins_plot = customize_ggplot_theme(plot = tmrs_50kb_bins_plot, base_theme = theme_bw(), xlab = "Distance to TSS (bp)", ylab = "Number of TMRs",
+  title = NULL, fill_title = "TMR Direction", fill_colors = colour_list$purple_and_gold_light, axis_text_size = 14,
+  fill_labels = c("Negative", "Positive"), scale_x = scale_x_continuous(breaks = seq(-40000, 40000, 20000), expand = c(0, 0), labels = scales::comma),
+  facet = "dataset", facet_nrow = 1, facet_scales = "fixed", facet_labels = c("Normal Prostate", "Prostate Tumours", "Prostate Metastases"), strip_text_size = 18) + 
+  theme(strip.background = element_blank(), plot.margin = margin(b = 0.5, unit = "cm")) +
+  geom_vline(xintercept = 0, linetype = "dotted")
+tmrs_50kb_bins_plot
+saveRDS(tmrs_50kb_bins_plot, "tmrs_50kb_bins_plot.rds")
+
+
+
 
 ### Make introns and exons plots
 

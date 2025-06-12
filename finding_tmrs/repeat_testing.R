@@ -129,3 +129,14 @@ bismap_gr = makeGRangesFromDataFrame(bismap_bed, starts.in.df.are.0based = T, ke
 saveRDS(bismap_gr, "~/genomes/human/bismap_hg38/bismap_gr.rds")
 bismap_gr = readRDS("~/genomes/human/bismap_hg38/bismap_gr.rds")
 bad = bismap_gr[bismap_gr$score < 1]
+
+# Expand non_high_mappability_regions 
+unmappable_regions = methodical::expand_granges(unmappable_regions, 150, 150)
+
+cpgea_normal_tmrs_50kb = readRDS("tmr_granges/cpgea_normal_tmrs_50kb_unfiltered.rds")
+cpgea_tumour_tmrs_50kb = readRDS("tmr_granges/cpgea_tumour_tmrs_50kb_unfiltered.rds")
+mcrpc_tmrs_50kb = readRDS("tmr_granges/mcrpc_tmrs_50kb_unfiltered.rds")
+
+cpgea_noarmal_tmrs_50kb = subsetByOverlaps(cpgea_normal_tmrs_50kb, unmappable_regions, invert = T)
+cpgea_tumour_tmrs_50kb = subsetByOverlaps(cpgea_tumour_tmrs_50kb, unmappable_regions, invert = T)
+mcrpc_tmrs_50kb = subsetByOverlaps(mcrpc_tmrs_50kb, unmappable_regions, invert = T)
