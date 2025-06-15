@@ -3,7 +3,6 @@
 # Load required packages
 library(methodical)
 library(dplyr)
-library(patchwork)
 source("../auxillary_scripts/plotting_functions.R")
 
 # Load CPGEA methylation RSE and MCRPC RSE
@@ -26,7 +25,7 @@ mcrpc_tmrs = readRDS("tmr_granges/mcrpc_tmrs.rds")
 
 ### Evaluate TMR correlations in normal prostate samples
 
-bpparam = BiocParallel::MulticoreParam(workers = 10)
+bpparam = BiocParallel::SerialParam()
 
 # Took 1 minutes with 10 cores
 system.time({cpgea_normal_tmrs_correlations_normal_samples = calculateRegionMethylationTranscriptCors(
@@ -98,7 +97,7 @@ data.table::fwrite(mcrpc_tmrs_correlations_metastases_samples, "tmr_evaluation_t
 ### Create plots of tmr correlations
 
 # Get paths to all tmr evaluation tables
-tmr_evaluation_tables_paths = list.files("tmr_evaluation_tables/", full.names = T)
+tmr_evaluation_tables_paths = list.files("~/mounts/apocrita_scratch/heery_2025_scripts/finding_tmrs/tmr_evaluation_tables/", full.names = T)
 names(tmr_evaluation_tables_paths) = gsub(".tsv.gz", "", basename(tmr_evaluation_tables_paths))
 
 # Read in all tables as a list
@@ -158,9 +157,6 @@ significant_tmr_cor_barplots = customize_ggplot_theme(significant_tmr_cor_barplo
   scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
   theme(strip.background = element_blank())
 significant_tmr_cor_barplots
-
-# Combine correlation_distribution_violins and significant_tmr_cor_barplots
-combined_violins_and_barplot = correlation_distribution_violins / significant_tmr_cor_barplots
 
 # Load other plots to make supplementary figure 10
 tmrs_5kb_bins_plot = readRDS("tmrs_5kb_bins_plot.rds")

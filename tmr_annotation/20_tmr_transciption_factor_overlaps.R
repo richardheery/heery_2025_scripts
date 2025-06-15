@@ -4,6 +4,7 @@
 library(GenomicRanges)
 library(methodical)
 library(doParallel)
+library(dplyr)
 source("../auxillary_scripts/enrichment_tests.R")
 source("../auxillary_scripts/plotting_functions.R")
 
@@ -96,11 +97,12 @@ combined_tmr_remap_enrichment_plot = customize_ggplot_theme(combined_tmr_remap_e
   legend_title_size = 22, legend_text_size = 20, axis_title_size = 22) +
     theme(strip.background = element_blank(), axis.text.x = element_text(size = 14), 
       axis.text.y = element_text(size = 20), strip.text.x = element_text(size = 24), axis.title.y = element_text(size = 22))
-combined_tmr_remap_enrichment_plot = n
+combined_tmr_remap_enrichment_plot
 
 # Combine with combined_annotation_plot
 combined_annotation_plot = readRDS("combined_annotation_plot.rds")
 
 figure6 = ggpubr::ggarrange(plotlist = list(combined_annotation_plot, ggpubr::ggarrange(combined_tmr_remap_enrichment_plot, labels = "C", font.label = list(size = 20))),
   nrow = 2, heights = c(27, 15.2), widths = 27) 
+figure6
 ggsave(plot = figure6, "../figures/figure6.pdf", width = 27, height = 42.2)

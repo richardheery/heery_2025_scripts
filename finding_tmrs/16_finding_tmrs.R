@@ -6,7 +6,7 @@ library(dplyr)
 library(ggplot2)
 
 # Get repeat ranges for hg38
-unmappable_regions = readRDS("../auxillary_data/non_high_mappability_regions.rds")
+unmappable_regions = readRDS("../auxillary_data/low_mappability_regions.rds")
 
 # Create a BPPARAM object
 bpparam = BiocParallel::MulticoreParam(1)

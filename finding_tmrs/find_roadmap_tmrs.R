@@ -38,13 +38,13 @@ saveRDS(transcript_meth_cors_roadmap, "meth_transcript_cors/roadmap_whole_gene_b
 transcript_meth_cors_roadmap = readRDS("meth_transcript_cors/roadmap_whole_gene_body_correlations.rds")
 
 # Create a BPPARAM object
-bpparam = BiocParallel::MulticoreParam(5)
+bpparam = BiocParallel::MulticoreParam(1)
 
 # Find TMRs for correlations. Took 1 minute. 
 system.time({roadmap_tmrs = findTMRs(correlation_list = transcript_meth_cors_roadmap, 
   p_adjust_method = "fdr", p_value_threshold = 0.1, BPPARAM = bpparam)})
 
 # Get repeat ranges for hg38 and subset TMRs for those not overlapping repeats
-repeat_ranges = readRDS("../auxillary_data/repeatmasker_granges_ucsc.rds")
-roadmap_tmrs = subsetByOverlaps(roadmap_tmrs, repeat_ranges, invert = T)
+low_mappability_regions = readRDS("../auxillary_data/low_mappability_regions.rds")
+roadmap_tmrs = subsetByOverlaps(roadmap_tmrs, low_mappability_regions, invert = T)
 saveRDS(roadmap_tmrs, "tmr_granges/roadmap_tmrs.rds")

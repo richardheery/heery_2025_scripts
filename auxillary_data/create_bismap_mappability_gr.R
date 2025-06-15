@@ -1,4 +1,4 @@
-# Create a GRanges object with regions where WGBS reads cannot be maped with confidence
+# Create a GRanges object with regions where WGBS reads cannot be mapped with confidence
 
 # Load required packages
 library(GenomicRanges)
@@ -20,5 +20,5 @@ high_mappability_regions = k100_bismap_gr[k100_bismap_gr$score == 1]
 hg38_gr = GRanges(seqinfo(BSgenome.Hsapiens.UCSC.hg38))[1:24]
 
 # Extract regions which do not overlap high mappable regions and save
-non_high_mappability_regions = setdiff(hg38_gr, high_mappability_regions)
-saveRDS(non_high_mappability_regions, "non_high_mappability_regions.rds")
+low_mappability_regions = setdiff(hg38_gr, high_mappability_regions)
+saveRDS(low_mappability_regions, "low_mappability_regions.rds")
