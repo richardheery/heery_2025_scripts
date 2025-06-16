@@ -140,6 +140,7 @@ saveRDS(combined_annotation_plot, "combined_annotation_plot.rds")
 ### Make plots for Roadmap TMRs
 
 # Find overlaps between Roadmap TMRs and regulatory features
+roadmap_tmrs = readRDS("../finding_tmrs/tmr_granges/roadmap_tmrs.rds")
 roadmap_tmr_annotation_overlaps = data.frame(findOverlaps(roadmap_tmrs, genome_annotation_hg38))
 roadmap_tmr_annotation_overlaps$roadmap_tmr_group = "Roadmap"
 roadmap_tmr_annotation_overlaps$direction = roadmap_tmrs$direction[roadmap_tmr_annotation_overlaps$queryHits]

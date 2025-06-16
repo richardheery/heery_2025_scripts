@@ -105,7 +105,6 @@ methylation_change_boxplots = customize_ggplot_theme(methylation_change_boxplots
 methylation_change_boxplots
 methylation_change_boxplots = ggpubr::ggarrange(methylation_change_boxplots, labels = "B")
 saveRDS(methylation_change_boxplots, "methylation_change_boxplots.rds")
-#ggsave(plot = methylation_change_boxplots, "../figures/figure6B.pdf", width = 8, height = 9)
 
 ### Check methylation change at regions in 8 TCGA patients with WGBS data for matching tumour and normal samples 
 
@@ -184,12 +183,10 @@ tcga_wgbs_feature_meth_change_plot = ggplot(tcga_wgbs_genomic_region_mean_meth_c
     color = "gray", linewidth = .5, alpha = .5)
 tcga_wgbs_feature_meth_change_plot = 
   customize_ggplot_theme(tcga_wgbs_feature_meth_change_plot, 
-  ylab = "Cancer Type", xlab = "Mean Methylation Change", color_title = "Genomic Feature",
-  show_legend = T, scale_x = scale_x_continuous(limits = c(-0.15, 0.3), expand = c(0, 0)), 
+  ylab = "Cancer Type", xlab = "Mean Methylation Change", color_title = "Genomic Feature", show_legend = T, 
   fill_colors = rev(feature_colors), colors = rev(feature_colors), legend_text_size = 16) + 
   theme(strip.background = element_blank(), strip.text = element_blank(),
     panel.grid.major.y = element_blank()) +
     guides(fill = "none")
 tcga_wgbs_feature_meth_change_plot
 saveRDS(tcga_wgbs_feature_meth_change_plot, "tcga_wgbs_feature_meth_change_plot.rds")
-ggsave(plot = tcga_wgbs_feature_meth_change_plot, filename = "../figures/figure6C.pdf", height = 9, width = 16)

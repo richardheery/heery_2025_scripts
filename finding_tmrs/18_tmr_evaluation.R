@@ -97,7 +97,7 @@ data.table::fwrite(mcrpc_tmrs_correlations_metastases_samples, "tmr_evaluation_t
 ### Create plots of tmr correlations
 
 # Get paths to all tmr evaluation tables
-tmr_evaluation_tables_paths = list.files("~/mounts/apocrita_scratch/heery_2025_scripts/finding_tmrs/tmr_evaluation_tables/", full.names = T)
+tmr_evaluation_tables_paths = list.files("tmr_evaluation_tables/", full.names = T)
 names(tmr_evaluation_tables_paths) = gsub(".tsv.gz", "", basename(tmr_evaluation_tables_paths))
 
 # Read in all tables as a list
@@ -176,7 +176,7 @@ tmr_evaluation_tables_external_cancer = filter(tmr_evaluation_tables_external, s
 sum(tmr_evaluation_tables_external_cancer$q_val < 0.05, na.rm = T)/sum(!is.na(tmr_evaluation_tables_external_cancer$q_val))
 
 ### Evaluate cpgea_normal_tmrs_1_or_more_cpg. Took 7 minutes
-cpgea_normal_tmrs_1_or_more_cpg = readRDS("tmr_granges/cpgea_normal_tmrs_1_or_more_cpg_without_repeats.rds")
+cpgea_normal_tmrs_1_or_more_cpg = readRDS("tmr_granges/cpgea_normal_tmrs_1_or_more_cpg_unfiltered.rds")
 bpparam = BiocParallel::MulticoreParam(workers = 2)
 system.time({cpgea_normal_tmrs_1_or_more_cpg_correlations_normal_samples = calculateRegionMethylationTranscriptCors(
   genomic_regions = cpgea_normal_tmrs_1_or_more_cpg, genomic_region_names = cpgea_normal_tmrs_1_or_more_cpg$tmr_name, samples_subset = common_cpgea_normal_samples,

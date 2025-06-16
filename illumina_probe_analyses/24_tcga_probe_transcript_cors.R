@@ -19,8 +19,8 @@ tcga_meth_rse_hg19 = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/
 deseq2_normalized_count_files = list.files("../auxillary_data/rnaseq_data/tcga_rna_seq/deseq_normalized_counts/", full.names = T)
 names(deseq2_normalized_count_files) = gsub("_deseq_normalized_counts.tsv.gz", "", basename(deseq2_normalized_count_files))
 
-Calculate correlation for normal samples for each project
-Took 3 hours with 5 cores
+# Calculate correlation for normal samples for each project
+# Took 3 hours with 5 cores
 bpparam = BiocParallel::MulticoreParam(workers = 10)
 
 
@@ -55,6 +55,77 @@ system.time({foreach(project = names(deseq2_normalized_count_files)) %dopar% {
   saveRDS(cor_results, paste0("tcga_probe_cors/", project, "_normal_sample_cors.rds"))
 
 }})
+
+# Load results for all normal samples
+normal_sample_cor_results = list.files("tcga_probe_cors/", pattern = "normal", full.names = T)
+names(normal_sample_cor_results) = gsub("_.*", "", basename(normal_sample_cor_results))
+normal_sample_cor_results_list = lapply(normal_sample_cor_results, function(x) bind_rows(readRDS(x), .id = "transcript_id"))
+
+# Correct p_values
+normal_sample_cor_results_list  = lapply(normal_sample_cor_results_list, function(x) mutate(x, q_val = p.adjust(p_val, method = "fdr")))
+
+# Combine all results into a single table
+normal_sample_cor_results_combined = dplyr::bind_rows(normal_sample_cor_results_list, .id = "tissue")
+
+# Bin CpGs by distance to TSS
+normal_sample_cor_results_combined$bin = plyr::round_any(normal_sample_cor_results_combined$distance_to_tss, 500)
+
+# Bin correlations and count number of significant correlations and all correlations in bin. 
+normal_sample_cor_results_combined_binned = data.frame(summarize(group_by(normal_sample_cor_results_combined, bin), 
+  num_sig = sum(q_val < 0.05, na.rm = T), total = sum(!is.na(p_val))))
+
+# Calculate proportion of significant correlations
+normal_sample_cor_results_combined_binned$prop_sig = normal_sample_cor_results_combined_binned$num_sig/normal_sample_cor_results_combined_binned$total
+
+# Create barplot of significant correlations per bin and the percentage of significant correlations covered by probes
+normal_prop_sig_bins_plot = ggplot(filter(normal_sample_cor_results_combined_binned, abs(bin) < 5000), aes(x = bin, y = prop_sig)) +
+  geom_col(position = "identity", fill = "#2a5674") 
+normal_prop_sig_bins_plot = customize_ggplot_theme(normal_prop_sig_bins_plot, xlab = "Distance to TSS (bp)", 
+  ylab = "Proportion of CpG Sites\nDisplaying Significant Correlations", title = NULL)
+normal_prop_sig_bins_plot = normal_prop_sig_bins_plot + scale_x_continuous(expand = c(0, 0), labels = scales::comma)
+normal_prop_sig_bins_plot
+saveRDS(normal_prop_sig_bins_plot, "all_tcga_normal_prop_sig_bins_plot.rds")
+
+# Load results for all tumour samples
+tumour_sample_cor_results = list.files("tcga_probe_cors/", pattern = "tumour", full.names = T)
+names(tumour_sample_cor_results) = gsub("_.*", "", basename(tumour_sample_cor_results))
+tumour_sample_cor_results_list = lapply(tumour_sample_cor_results, function(x) bind_rows(readRDS(x), .id = "transcript_id"))
+
+# Correct p_values
+tumour_sample_cor_results_list  = lapply(tumour_sample_cor_results_list, function(x) mutate(x, q_val = p.adjust(p_val, method = "fdr")))
+
+# Combine all results into a single table
+tumour_sample_cor_results_combined = dplyr::bind_rows(tumour_sample_cor_results_list, .id = "tissue")
+
+# Bin CpGs by distance to TSS
+tumour_sample_cor_results_combined$bin = plyr::round_any(tumour_sample_cor_results_combined$distance_to_tss, 500)
+
+# Bin correlations and count number of significant correlations and all correlations in bin. 
+tumour_sample_cor_results_combined_binned = data.frame(summarize(group_by(tumour_sample_cor_results_combined, bin), 
+  num_sig = sum(q_val < 0.05, na.rm = T), total = sum(!is.na(p_val))))
+
+# Calculate proportion of significant correlations
+tumour_sample_cor_results_combined_binned$prop_sig = tumour_sample_cor_results_combined_binned$num_sig/tumour_sample_cor_results_combined_binned$total
+
+# Create barplot of significant correlations per bin and the percentage of significant correlations covered by probes
+tumour_prop_sig_bins_plot = ggplot(filter(tumour_sample_cor_results_combined_binned, abs(bin) < 5000), aes(x = bin, y = prop_sig)) +
+  geom_col(position = "identity", fill = "#2a5674") 
+tumour_prop_sig_bins_plot = customize_ggplot_theme(tumour_prop_sig_bins_plot, xlab = "Distance to TSS (bp)", 
+  ylab = "Proportion of CpG Sites\nDisplaying Significant Correlations", title = NULL)
+tumour_prop_sig_bins_plot = tumour_prop_sig_bins_plot + scale_x_continuous(expand = c(0, 0), labels = scales::comma)
+tumour_prop_sig_bins_plot
+saveRDS(tumour_prop_sig_bins_plot, "all_tcga_tumour_prop_sig_bins_plot.rds")
+
+# Load plots necessary for completing figure 8
+cpgs_per_bin_plot = readRDS("cpgs_per_bin_plot.rds")
+combined_probes_per_bin_plot = readRDS("combined_probes_per_bin_plot.rds")
+
+# Make combined plot with CpGs, probes and tumour plots
+figure8_plot = cowplot::plot_grid(plotlist = 
+    list(cpgs_per_bin_plot, combined_probes_per_bin_plot, normal_prop_sig_bins_plot, tumour_prop_sig_bins_plot), 
+  nrow = 2, ncol = 2, align = "hv", labels = c("A", "B", "C", "D"), byrow = T)
+figure8_plot
+ggsave(plot = figure8_plot, "../figures/figure8.pdf", width = 32, height = 18)
 
 # Calculate correlation for tumour samples for each project
 # Took 8 hours with 5 cores

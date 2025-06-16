@@ -70,10 +70,10 @@ saveRDS(combined_probes_per_bin_plot, "combined_probes_per_bin_plot.rds")
 
 # Bin correlations and count number of significant correlations and all correlations in bin. 
 cpgea_normal_all_correlations_binned = data.frame(summarize(group_by(cpgea_normal_correlations, bin), 
-  num_sig = sum(q_val < 0.05, na.rm = T), total = sum(!is.na(p_val))))
+  num_sig = mean(abs(cor), na.rm = T), total = sum(!is.na(p_val))))
 
 # Calculate proportion of significant correlations
-cpgea_normal_all_correlations_binned$prop_sig = cpgea_normal_all_correlations_binned$num_sig/cpgea_normal_all_correlations_binned$total
+cpgea_normal_all_correlations_binned$prop_sig = cpgea_normal_all_correlations_binned$num_sig
 
 # Create barplot of significant correlations per bin and the percentage of significant correlations covered by probes
 cpgea_normal_prop_sig_bins_plot = ggplot(filter(cpgea_normal_all_correlations_binned, abs(bin) < 5000), aes(x = bin, y = prop_sig)) +
@@ -248,11 +248,11 @@ cpg_sds_tumour_boxplots = readRDS("cpg_sds_tumour_boxplots.rds")
 cpg_sds_normal_boxplots = readRDS("cpg_sds_normal_boxplots.rds")
 cpg_sds_metastasis_boxplots = readRDS("cpg_sds_metastasis_boxplots.rds")
 
-# Make combined plot with CpGs, probes and tumour plots
-figure8_plot = cowplot::plot_grid(plotlist = 
-    list(cpgs_per_bin_plot, combined_probes_per_bin_plot, cpgea_tumour_prop_sig_bins_plot, cpg_sds_tumour_boxplots), 
-  nrow = 2, ncol = 2, align = "hv", labels = c("A", "B", "C", "D"), byrow = T)
-ggsave(plot = figure8_plot, "../figures/figure8.pdf", width = 32, height = 18)
+# # Make combined plot with CpGs, probes and tumour plots
+# figure8_plot = cowplot::plot_grid(plotlist = 
+#     list(cpgs_per_bin_plot, combined_probes_per_bin_plot, cpgea_tumour_prop_sig_bins_plot, cpg_sds_tumour_boxplots), 
+#   nrow = 2, ncol = 2, align = "hv", labels = c("A", "B", "C", "D"), byrow = T)
+# ggsave(plot = figure8_plot, "../figures/figure8.pdf", width = 32, height = 18)
 
 # Combine normal and metastases plots 
 normal_and_metastases_plots = cowplot::plot_grid(plotlist = 

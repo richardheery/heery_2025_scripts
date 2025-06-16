@@ -32,10 +32,8 @@ bpparam = BiocParallel::MulticoreParam(20)
 system.time({tmr_diff_meth_results = diff_meth_methylsig(meth_rse = cpgea_meth_rse, genomic_regions = combined_tmr_gr, meth_reads_assay = "beta", coverage_assay = "cov",
   max_sites_per_chunk = floor(625000000/ncol(cpgea_meth_rse)), group_column = "condition", case = "Tumour", control = "Normal", BPPARAM = bpparam)})
 saveRDS(tmr_diff_meth_results, "tmr_diff_meth_results_methylsig.rds")
-tmr_diff_meth_results = readRDS("tmr_diff_meth_results_methylsig.rds")
-
-# Convert combined_tmr_gr to a data.frame and select necessary columns
 tmr_diff_meth_results = data.frame(mcols(tmr_diff_meth_results))
+tmr_diff_meth_results = readRDS("tmr_diff_meth_results_methylsig.rds")
 
 # Add columns indicating dataset and direction
 tmr_diff_meth_results$dataset = gsub("tmrs_.*", "tmrs", row.names(tmr_diff_meth_results))
@@ -83,7 +81,7 @@ tmr_diff_meth_results_summary = mutate(
 tmr_direction_meth_change_barplot = ggplot(tmr_diff_meth_results_summary, 
   aes(x = dataset, y = count, fill = meth_change, label = paste0(round(freq, 2)*100, "%"))) +
   geom_col(position = "dodge", color = "black") + 
-  geom_text(mapping = aes(x = dataset, y = count + 30, group = meth_change), position = position_dodge(width = 0.9), size = 4) +
+  geom_text(mapping = aes(x = dataset, y = count + 100, group = meth_change), position = position_dodge(width = 0.9), size = 4) +
   theme_classic() +
   theme(plot.title = element_text(hjust = 0.5, size = 24), 
   	axis.title = element_text(size = 20), axis.text = element_text(size = 18), 
@@ -97,7 +95,6 @@ tmr_direction_meth_change_barplot = ggplot(tmr_diff_meth_results_summary,
     labeller = as_labeller(setNames(c("Negative TMRs", "Positive TMRs"), c("negative", "positive"))))
 tmr_direction_meth_change_barplot
 saveRDS(tmr_direction_meth_change_barplot, "tmr_direction_meth_change_barplot.rds")
-ggsave(plot = tmr_direction_meth_change_barplot, "../figures/figure6A.pdf", width = 8, height = 9)
 
 ### Create enrichment plots
 
@@ -150,14 +147,15 @@ plot_tmr_gene_enrichment = function(gene_list, pathways, filter_groups = NULL,
 # Make plots of enriched KEGG and Hallmark pathways in prostate tumours and metastases
 system.time({kegg_enrichment_plots_cancer = lapply(tmr_diff_meth_genes, function(x) 
   plot_tmr_gene_enrichment(gene_list = x, pathways = msigdb_gene_set_list$`CP:KEGG`, 
-    filter_groups = c("cpgea_tumour_tmrs", "mcrpc_tmrs"), facet_labels = c("Prostate Tumours TMRs", "Prostate Metastases TMRs"), ylab = "KEGG Pathway"))})
+    filter_groups = c("cpgea_normal_tmrs", "cpgea_tumour_tmrs"), facet_labels =  c("Normal Prostate TMRs", "Prostate Tumours TMRs"), ylab = "KEGG Pathway"))})
 system.time({hallmark_enrichment_plots_cancer = lapply(tmr_diff_meth_genes, function(x) 
   plot_tmr_gene_enrichment(gene_list = x, pathways = msigdb_gene_set_list$h, 
     filter_groups = c("cpgea_normal_tmrs", "cpgea_tumour_tmrs", "mcrpc_tmrs"), facet_labels = c("Normal Prostate TMRs", "Prostate Tumours TMRs", "Prostate Metastases TMRs"), ylab = "MSigDB Hallmark Pathway"))})
 
 # Combine KEGG and Hallmark enrichment plots
-combined_kegg_and_hallmark_plots = ggarrange(plotlist = list(
+combined_kegg_and_hallmark_plots = ggpubr::ggarrange(plotlist = list(
   customize_ggplot_theme(kegg_enrichment_plots_cancer[[1]], title = "Hypermethylated Negative TMRs", xlab = "Relative Enrichment", ylab = "KEGG Pathway") + theme(strip.background = element_blank()), 
   customize_ggplot_theme(hallmark_enrichment_plots_cancer[[2]], title = "Hypomethylated Negative TMRs", xlab = "Relative Enrichment", ylab = "MSigDB Hallmark Pathway") + theme(strip.background = element_blank())),  
     nrow = 2, labels = c("A", "B"))
+combined_kegg_and_hallmark_plots
 ggsave(plot = combined_kegg_and_hallmark_plots, "../figures/supp_figure15.pdf", width = 27, height = 18)

@@ -53,7 +53,6 @@ tmr_stats_barplot = customize_ggplot_theme(tmr_stats_barplot,
   facet_scales = "fixed", x_labels_angle = 30) + theme(strip.background = element_blank())
 tmr_stats_barplot
 saveRDS(tmr_stats_barplot, "tmr_stats_barplot.rds")
-ggsave(plot = tmr_stats_barplot, filename = "../figures/supplementary_figure10B.pdf", width = 27, height = 9)
 
 # Calculate the proportion overlap between TMR groups
 tmr_overlaps = calculate_regions_overlap_list(grl = tmr_list, ignore.strand = T, overlap_threshold = 0.25)
@@ -79,4 +78,3 @@ tmr_heatmap_list = list(tmr_overlaps_plot, transcript_overlaps_plot, gene_overla
 combined_tmr_heatmaps = ggpubr::ggarrange(plotlist = tmr_heatmap_list, nrow = 1, ncol = 3)
 combined_tmr_heatmaps
 saveRDS(combined_tmr_heatmaps, "tmr_stat_heatmaps.rds")
-ggsave(plot = combined_tmr_heatmaps, filename = "../figures/supplementary_figure10C.pdf", width = 27, height = 9, bg = "white")
