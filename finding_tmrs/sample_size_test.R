@@ -4,6 +4,7 @@
 library(methodical)
 library(dplyr)
 library(foreach)
+library(plotR)
 
 # Get TSS Granges
 tss_gr = readRDS("../auxillary_data/cage_supported_gencode_tss.rds")
@@ -25,7 +26,7 @@ normal_samples = grep("N", intersect(names(cpgea_kallisto_deseq2_counts), colnam
 tumour_samples = grep("T", intersect(names(cpgea_kallisto_deseq2_counts), colnames(cpgea_meth_rse)), value = T)
 
 # Create a bpparam object
-bpparam = BiocParallel::SnowParam(workers = 10)
+bpparam = BiocParallel::SnowParam(workers = 8)
 
 # Create 10 random samples each for sample sizes of 20, 40, 60, 80 and 100
 set.seed(123)
@@ -33,7 +34,7 @@ random_samples = setNames(lapply(seq(20, 100, 20), function(x)
   setNames(lapply(1:10, function(y) sample(normal_samples, x)), paste0("_", 1:10))), seq(20, 100, 20))
 random_samples = unlist(random_samples, recursive = F)
 
-system.time({random_sample_tmrs = foreach(sample_subset = random_samples[1:4], i = names(random_samples), .packages = "methodical") %do% {
+system.time({random_sample_tmrs = foreach(sample_subset = random_samples, i = names(random_samples), .packages = "methodical") %do% {
   
   print(i)
   
@@ -49,5 +50,22 @@ system.time({random_sample_tmrs = foreach(sample_subset = random_samples[1:4], i
   sample_subset_tmrs
   
 }})
+names(random_sample_tmrs) = names(random_samples)
 saveRDS(random_sample_tmrs, "random_sample_tmrs.rds")
+random_sample_tmrs = readRDS("random_sample_tmrs.rds")
 
+# Make a data.frame with the number of TMRs in each random sample
+random_sample_df = data.frame(
+  sample_name = gsub("\\..*", "", names(random_sample_tmrs)),
+  number_tmrs = lengths(random_sample_tmrs),
+  row.names = NULL
+)
+random_sample_df$sample_name = factor(random_sample_df$sample_name, levels = as.character(seq(20, 200, 20)))
+
+# Make boxplots of the number of TMRs per sample group
+sample_boxplots = ggplot(random_sample_df, aes(x = sample_name, y = number_tmrs)) +
+  geom_boxplot(fill = "#A28CB1") +
+  geom_point()
+sample_boxplots = customize_ggplot_theme(sample_boxplots, xlab = "Sample Number", ylab = "TMR Number")
+sample_boxplots
+ggsave(plot = sample_boxplots, "../figures/supp_figure6.pdf", width = 16, height = 9)
