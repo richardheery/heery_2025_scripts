@@ -147,7 +147,7 @@ cpgea_tumour_tmrs = readRDS("tmr_granges/cpgea_tumour_tmrs.rds")
 mcrpc_tmrs = readRDS("tmr_granges/mcrpc_tmrs.rds")
 
 # Bin relative TMRs for CPGEA Normal, CPGEA Tumour and MCRPC in 5KB
-cpgea_normal_5kb_tmr_distributions = bin_relative_tmrs(cpgea_normal_tmrs, width = 4750)
+cpgea_normal_5kb_tmr_distributions = bin_relative_tmrs(tmrs = cpgea_normal_tmrs, width = 4750)
 cpgea_tumour_5kb_tmr_distributions = bin_relative_tmrs(cpgea_tumour_tmrs, width = 4750)
 mcrpc_tmr_5kb_distributions = bin_relative_tmrs(mcrpc_tmrs, width = 4750)
 
@@ -159,7 +159,7 @@ combined_5kb_tmr_distributions = bind_rows(
   )
 
 # Make a plot of the TMR distributions in the 3 data sets and save
-tmrs_5kb_bins_plot = ggplot(combined_5kb_tmr_distributions, aes(x = bin_center, y = value, fill = variable)) +
+tmrs_5kb_bins_plot = ggplot(filter(combined_5kb_tmr_distributions, dataset == "cpgea_normal"), aes(x = bin_center, y = value, fill = variable)) +
   geom_col(position = "dodge")
 tmrs_5kb_bins_plot = customize_ggplot_theme(plot = tmrs_5kb_bins_plot, base_theme = theme_bw(), xlab = "Distance to TSS (bp)", ylab = "Number of TMRs",
   title = NULL, fill_title = "TMR Direction", fill_colors = colour_list$purple_and_gold_light, axis_text_size = 14,
@@ -177,16 +177,40 @@ tmr_list = list(
   "Prostate Tumours" = cpgea_tumour_tmrs,
   "Prostate Metastases" = mcrpc_tmrs)
 
+# 
+tss_gr = readRDS("../auxillary_data/cage_supported_gencode_tss.rds")
+transcripts_gr = readRDS("../auxillary_data/pc_transcripts_gr.rds")[names(tss_gr)]
+
+# Separate transcript bodies into 20 equally sized sections
+transcripts_gr_sections = tile(transcripts_gr, n = 100)
+
+# Reverse the GRanges for transcripts on the - strand
+transcripts_gr_sections[strand(transcripts_gr) == "-"] = GRangesList(lapply(transcripts_gr_sections[strand(transcripts_gr) == "-"], rev))
+
+# Convert transcripts_gr_sections into a flat GRanges
+transcripts_gr_sections = unlist(unname(transcripts_gr_sections))
+
+# Add transcript ID and the section number as metadata columns
+transcripts_gr_sections$transcript_id = names(transcripts_gr_sections)
+transcripts_gr_sections$region = paste("Region", 1:100)
+
+# Convert transcripts_gr_sections back into a GRangesList
+tss_grl = split(transcripts_gr_sections, transcripts_gr_sections$transcript_id)
+
 # Load introns and exons for transcripts as a GRanges list
-tss_grl = readRDS("../auxillary_data/pc_transcripts_exons_and_introns_grl.rds")
-tss_grl_expanded = expand_transcripts(tss_grl, seq(500, 5000, 500), seq(500, 5000, 500))
+#tss_grl = readRDS("../auxillary_data/pc_transcripts_exons_and_introns_grl.rds")
+tss_grl_expanded = expand_transcripts(grl = tss_grl, expand_upstream = seq(500, 5000, 500), expand_downstream = seq(500, 5000, 500))
 
 # Create a vector with the regions to plot
-exons = paste0("exon_", 1:10)
-introns = paste0("intron_", 1:10)
+exons = paste0("exon_", 1:20)
+introns = paste0("intron_", 1:20)
 exons_introns = c(rbind(exons, introns))
 exons_introns = exons_introns[-length(exons_introns)]
-regions = c(paste0("TSS-", rev(seq(500, 5000, 500))), exons_introns, paste0("TES+", seq(500, 5000, 500)))
+regions = c(paste0("TSS-", rev(seq(500, 5000, 500))), paste("Region", 1:100), paste0("TES+", seq(500, 5000, 500)))
+xlabels = rep("", length(regions))
+xlabels[c(2, 6, 115, 119)] = c("-4,250", "-2,250", "+2,250", "+4,250")
+xlabels[which(regions %in% c("25%", "50%", "75%"))] = c("25%", "50%", "75%")
+#regions = c(paste0("TSS-", rev(seq(500, 5000, 500))), exons_introns, paste0("TES+", seq(500, 5000, 500)))
 
 # Create absolute count and normalized counts for CPGEA normal samples
 cpgea_normal_tmrs_introns_exons_plot = plot_tmr_regions(tmrs = cpgea_normal_tmrs, 
@@ -195,11 +219,12 @@ cpgea_normal_tmrs_introns_exons_plot_normalized = plot_tmr_regions(tmrs = cpgea_
   transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs in Normal Prostate", normalize = T)
 combined_normal_plots = ggarrange(plotlist = list(cpgea_normal_tmrs_introns_exons_plot, cpgea_normal_tmrs_introns_exons_plot_normalized), 
   nrow = 2, labels = c("C", "D"), common.legend = T, legend = "right", align = "hv")
+combined_normal_plots
 
 # Load TMR example plots and comboine with combined_normal_plots to make figure 5
 combined_tmr_correlation_plots = readRDS("combined_tmr_correlation_plots.rds")
-figure5 = ggarrange(combined_tmr_correlation_plots, combined_normal_plots, heights = c(10.086, 7.867), nrow = 2)
-ggsave(plot = figure5, "../figures/figure5.pdf", width = 20.828, height = 35.945)
+figure4 = ggarrange(combined_tmr_correlation_plots, ggpubr::ggarrange(cpgea_normal_tmrs_introns_exons_plot, labels = "C"), heights = c(10.086, 3.9335), nrow = 2)
+ggsave(plot = figure4, "../figures/figure4.pdf", width = 20.828, height = 28.07)
 
 # Create absolute count and normalized counts for CPGEA tumour samples
 cpgea_tumour_tmrs_introns_exons_plot = plot_tmr_regions(tmrs = cpgea_tumour_tmrs, 
@@ -214,18 +239,17 @@ mcrpc_tmrs_introns_exons_plot_normalized = plot_tmr_regions(tmrs = mcrpc_tmrs,
   transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = NULL, normalize = T)
 
 # Combine tumour and metastases plots
-tumour_and_metastases_plots = list(cpgea_tumour_tmrs_introns_exons_plot, cpgea_tumour_tmrs_introns_exons_plot_normalized,
-  mcrpc_tmrs_introns_exons_plot, mcrpc_tmrs_introns_exons_plot_normalized)
-combined_tumour_metastases_plots = ggarrange(plotlist = tumour_and_metastases_plots, nrow = 2, ncol = 2, labels = LETTERS[1:4], common.legend = T, legend = "right")
+tumour_and_metastases_plots = list(cpgea_tumour_tmrs_introns_exons_plot, mcrpc_tmrs_introns_exons_plot)
+combined_tumour_metastases_plots = ggarrange(plotlist = tumour_and_metastases_plots, nrow = 2, ncol = 1, labels = LETTERS[1:2], common.legend = T, legend = "right")
 combined_tumour_metastases_plots
-ggsave(plot = combined_tumour_metastases_plots, "../figures/supp_figure11.pdf", width = 32, height = 18)
+ggsave(plot = combined_tumour_metastases_plots, "../figures/supp_figure10.pdf", width = 32, height = 18)
 
 # Make distribution plots just for MANE transcripts
 mane_transcripts = readRDS("../auxillary_data/mane_pc_transcript_ids.rds")
-cpgea_normal_mane_tmrs_introns_exons_plot_normalized = plot_tmr_regions(tmrs = cpgea_normal_tmrs[cpgea_normal_tmrs$ID %in% mane_transcripts], 
-  transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs for MANE Transcripts in Normal Prostate", normalize = T)
-cpgea_normal_mane_tmrs_introns_exons_plot_normalized
-ggsave(plot = cpgea_normal_mane_tmrs_introns_exons_plot_normalized, "../figures/supp_figure13.pdf", width = 16, height = 9)
+cpgea_normal_mane_tmrs_introns_exons_plot = plot_tmr_regions(tmrs = cpgea_normal_tmrs[cpgea_normal_tmrs$ID %in% mane_transcripts], 
+  transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs for MANE Transcripts in Normal Prostate", normalize = F)
+cpgea_normal_mane_tmrs_introns_exons_plot
+ggsave(plot = cpgea_normal_mane_tmrs_introns_exons_plot, "../figures/supp_figure12.pdf", width = 24, height = 13.5)
 
 # Load Roadmap TMRs
 roadmap_tmrs = readRDS("tmr_granges/roadmap_tmrs.rds")
@@ -240,7 +264,7 @@ roadmap_tmrs_introns_exons_plot_normalized = plot_tmr_regions(tmrs = roadmap_tmr
   transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs in Normal Prostate", normalize = T)
 
 # Combine plots and save
-combined_roadmap_tmrs_introns_exons_plot = ggpubr::ggarrange(roadmap_tmrs_introns_exons_plot, roadmap_tmrs_introns_exons_plot_normalized, 
+combined_roadmap_tmrs_introns_exons_plot = ggpubr::ggarrange(roadmap_tmrs_introns_exons_plot, roadmap_tmrs_introns_exons_plot, 
   align = "hv", nrow = 2, labels = c("A", "B"), common.legend = T, legend = "right")
 combined_roadmap_tmrs_introns_exons_plot
-ggsave(plot = combined_roadmap_tmrs_introns_exons_plot, "../figures/supp_figure12.pdf", width = 16, height = 9)
+ggsave(plot = roadmap_tmrs_introns_exons_plot, "../figures/supp_figure11.pdf", width = 24, height = 13.5)

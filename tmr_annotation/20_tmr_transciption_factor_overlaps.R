@@ -58,7 +58,7 @@ tmr_remap_enrichment_significant = lapply(tmr_remap_enrichment, function(x)
 
 # Save all significant results as a single table
 data.table::fwrite(bind_rows(tmr_remap_enrichment_significant, .id = "group"), 
-  file = "tf_bs_results.tsv")
+  file = "tf_bs_results.tsv", sep = "\t")
 
 # Get all significant TRs
 significant_tfs = lapply(tmr_remap_enrichment_significant, function(x) x$tf_name)

@@ -26,7 +26,7 @@ hg19tohg38_chain = rtracklayer::import.chain("../auxillary_data/hg19ToHg38.over.
 hg38_cpgs = extractMethSitesFromGenome("BSgenome.Hsapiens.UCSC.hg38")
 tcga_meth_rse_hg38 = liftoverMethRSE(tcga_meth_rse_hg19, chain = hg19tohg38_chain, permitted_target_regions = hg38_cpgs)
 
-# Calculate correlation for CPGEA tumour TMRs in tumour samples for each project
+# Calculate correlation for MCRPC TMRs in tumour samples for each project
 # Took 10 minutes with 4 cores
 system.time({mcrpc_tmr_tcga_tumour_cors = foreach(project = names(deseq2_normalized_count_files))  %do% { 
   

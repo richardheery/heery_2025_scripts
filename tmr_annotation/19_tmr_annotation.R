@@ -30,16 +30,44 @@ transcripts_gr = methodical::expand_granges(transcripts_gr, 5000, 5000)
 genome_annotation_hg38 = readRDS("../auxillary_data/complete_regulatory_annotation.rds")
 
 # Remove introns and exons
-genome_annotation_hg38 = genome_annotation_hg38[!genome_annotation_hg38$region_type %in% c("Exon", "Intron")]
+#genome_annotation_hg38 = genome_annotation_hg38[!genome_annotation_hg38$region_type %in% c("Exon", "Intron")]
 
 # Add transcripts_gr as background TMR search space
 background_gr = transcripts_gr
 mcols(background_gr) = NULL
 background_gr$region_type = "Background"
-genome_annotation_hg38 = c(genome_annotation_hg38, background_gr)
+#genome_annotation_hg38 = c(genome_annotation_hg38, background_gr)
 
 # Convert genome_annotation_hg38 to a list
 genome_annotation_hg38_list = GRangesList(split(genome_annotation_hg38, genome_annotation_hg38$region_type))
+
+######
+tmr_list = readRDS("../finding_tmrs/tmr_granges/tmr_list.rds")
+res = data.frame(lapply(tmr_list, function(x) 
+    sapply(genome_annotation_hg38_list, function(y)
+      sum(width(GenomicRanges::intersect(x, y, ignore.strand = T)))/sum(width(reduce(y, ignore.strand = T)))*1000)))
+
+
+system.time({permutation_results = foreach(i = 1:2, .combine = rbind) %do% {
+  
+  # 
+  genome_annotation_hg38_copy = genome_annotation_hg38
+  genome_annotation_hg38_copy$region_type = sample(genome_annotation_hg38_copy$region_type)
+  genome_annotation_hg38_copy_list = split(genome_annotation_hg38_copy, genome_annotation_hg38_copy$region_type)
+  
+  res = data.frame(lapply(tmr_list, function(x) 
+    sapply(genome_annotation_hg38_copy_list, function(y)
+      sum(width(GenomicRanges::intersect(x, y, ignore.strand = T)))/sum(width(reduce(y, ignore.strand = T)))*1000000)))
+  
+  res = tibble::rownames_to_column(res, "region_type")
+  res = tidyr::pivot_longer(res, cols = -region_type, names_to = "tmr_group", values_to = "bp")
+  res$iteration = i
+  res
+  
+}})
+
+
+#####
 
 # Calculate the size of the overlaps of transcripts_gr with each chromatin state
 annotation_widths = sapply(genome_annotation_hg38_list, function(x) calculate_regions_intersections(gr1 = transcripts_gr, gr2 = x))
@@ -198,4 +226,4 @@ roadmap_tmr_chromatin_state_annotation_plot
 combined_roadmap_annotation_plot = roadmap_tmr_genomic_feature_annotation_plot / roadmap_tmr_chromatin_state_annotation_plot +
   plot_layout(heights = c(1, 2), nrow = 2, ncol = 1) +
   plot_annotation(tag_levels = 'A') & theme(plot.tag = element_text(size = 20))
-ggsave(plot = combined_roadmap_annotation_plot, filename = "../figures/supp_figure14.pdf", width = 27, height = 27)
+ggsave(plot = combined_roadmap_annotation_plot, filename = "../figures/supp_figure13.pdf", width = 27, height = 27)

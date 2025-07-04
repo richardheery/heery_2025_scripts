@@ -85,9 +85,10 @@ mcrpc_tmrs[mcrpc_tmrs$gene_name == "PACSIN3"]
 
 # Create FOXD1 CpG correlation plot
 foxd1_cpg_correlation_plot = plotMethSiteCorCoefs(meth_site_cor_values = mcrpc_correlation_results[["ENST00000615637"]], reference_tss = tss_gr["ENST00000615637"], 
-  value_colours = "set2", xlabel = "Distance to TSS (bp)", ylabel = "DNA Methylation-Transcription Correlation") +
+  value_colours = "set2", xlabel = "Distance to *FOXD1* TSS (bp)", ylabel = "DNA Methylation-Transcription Correlation") +
   scale_x_continuous(limits = c(-5000, 5000), breaks = seq(-4000, 4000, 2000), exp= c(0.005, 0.005), labels = scales::comma) +
-  geom_hline(yintercept = 0, linetype = "dashed")
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme(axis.title.x = ggtext::element_markdown(size = 18))
 
 # Add TMRs to FOXD1 plot
 foxd1_tmrs_plot = plotTMRs(meth_site_plot = foxd1_cpg_correlation_plot, tmrs_gr = mcrpc_tmrs[mcrpc_tmrs$ID == "ENST00000615637"], 
@@ -96,9 +97,10 @@ foxd1_tmrs_plot = plotTMRs(meth_site_plot = foxd1_cpg_correlation_plot, tmrs_gr 
 
 # Create pacsin3 CpG correlation plot
 pacsin3_cpg_correlation_plot = plotMethSiteCorCoefs(meth_site_cor_values = mcrpc_correlation_results[["ENST00000298838"]], reference_tss = tss_gr["ENST00000298838"], 
-  value_colours = "set2", xlabel = "Distance to TSS (bp)", ylabel = "DNA Methylation-Transcription Correlation") +
+  value_colours = "set2", xlabel = "Distance to *PACSIN3* TSS (bp)", ylabel = "DNA Methylation-Transcription Correlation") +
   scale_x_continuous(limits = c(-5000, 5000), breaks = seq(-4000, 4000, 2000), exp= c(0.005, 0.005), labels = scales::comma) +
-  geom_hline(yintercept = 0, linetype = "dashed")
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme(axis.title.x = ggtext::element_markdown(size = 18))
 
 # Add TMRs to pacsin3 plot
 pacsin3_tmrs_plot = plotTMRs(meth_site_plot = pacsin3_cpg_correlation_plot, tmrs_gr = mcrpc_tmrs[mcrpc_tmrs$ID == "ENST00000298838"], 
@@ -114,10 +116,11 @@ foxd1_tmr_cor_results$significance = sig_sym(foxd1_tmr_cor_results$q_val)
 foxd1_tmr_cor_barplot = ggplot(foxd1_tmr_cor_results, aes(x = genomic_region_name, y = cor, label = significance, fill = factor(sign(cor)))) +
   geom_col(color = "black") + 
   geom_text(nudge_y = ifelse(foxd1_tmr_cor_results$cor >= 0, 0.01, -0.025), size = 8) + theme_classic()
-foxd1_tmr_cor_barplot = customize_ggplot_theme(foxd1_tmr_cor_barplot, ylab = "TMR Correlations",
+foxd1_tmr_cor_barplot = customize_ggplot_theme(foxd1_tmr_cor_barplot, ylab = "*FOXD1* TMR Correlations",
   x_labels = c("TMR1", "TMR2"), fill_colors = c("#A28CB1", "#D2C465"), show_legend = F) +
   scale_y_continuous(expand = expansion(mult = c(0.1, 0.1))) +
-  geom_hline(yintercept = 0)
+  geom_hline(yintercept = 0) +
+  theme(axis.title.y = ggtext::element_markdown(size = 18))
 foxd1_tmr_cor_barplot
 
 # Get Correlation TMR correlation results for pacsin3
@@ -126,10 +129,11 @@ pacsin3_tmr_cor_results$significance = sig_sym(pacsin3_tmr_cor_results$q_val)
 pacsin3_tmr_cor_barplot = ggplot(pacsin3_tmr_cor_results, aes(x = genomic_region_name, y = cor, label = significance, fill = factor(sign(cor)))) +
   geom_col(color = "black") + 
   geom_text(nudge_y = ifelse(pacsin3_tmr_cor_results$cor >= 0, 0.01, -0.025), size = 8) + theme_classic()
-pacsin3_tmr_cor_barplot = customize_ggplot_theme(pacsin3_tmr_cor_barplot, ylab = "TMR Correlations",
+pacsin3_tmr_cor_barplot = customize_ggplot_theme(pacsin3_tmr_cor_barplot, ylab = "*PACSIN3* TMR Correlations",
   x_labels = c("TMR1", "TMR2", "TMR3"), fill_colors = c("#A28CB1", "#D2C465"), show_legend = F) +
   scale_y_continuous(expand = expansion(mult = c(0.1, 0.1))) +
-  geom_hline(yintercept = 0)
+  geom_hline(yintercept = 0) +
+  theme(axis.title.y = ggtext::element_markdown(size = 18))
 pacsin3_tmr_cor_barplot
 
 # Combine plots 

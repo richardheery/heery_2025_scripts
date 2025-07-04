@@ -78,3 +78,18 @@ tmr_heatmap_list = list(tmr_overlaps_plot, transcript_overlaps_plot, gene_overla
 combined_tmr_heatmaps = ggpubr::ggarrange(plotlist = tmr_heatmap_list, nrow = 1, ncol = 3)
 combined_tmr_heatmaps
 saveRDS(combined_tmr_heatmaps, "tmr_stat_heatmaps.rds")
+
+# Test the enrichment of hallmark pathways in genes only associated with prostate tumour and prostgate metastases TMRs
+
+# Get background genes  
+background_genes = unique(readRDS("../auxillary_data/cage_supported_gencode_tss.rds")$gene_name)
+
+# Load MSigDB gene sets
+msigdb_gene_set_list = readRDS("../auxillary_data/msigdb_complete_gene_set_list.rds")
+
+# Get genes associated with TMRs both in prostate tumours and prostate metastases but not in normal samples
+cancer_tmr_genes = setdiff(intersect(cpgea_tumour_tmrs$gene_name, mcrpc_tmrs$gene_name), cpgea_normal_tmrs$gene_name)
+
+# Test the enrichment of hallmark pathways and filter for significant pathways
+cancer_tmr_genes_hallmark_pathways_enrichment = fisher_test_apply(test = cancer_tmr_genes, universe = background_genes, query_list = msigdb_gene_set_list$h, return_overlap = F)
+cancer_tmr_genes_hallmark_pathways_enrichment = dplyr::filter(cancer_tmr_genes_hallmark_pathways_enrichment, q_value < 0.05)
