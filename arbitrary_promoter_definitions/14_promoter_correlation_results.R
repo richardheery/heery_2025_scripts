@@ -201,9 +201,6 @@ metastases_sample_correlation_tables_combined$definition =
 # Remove correlations where q_value is NA
 metastases_sample_correlation_tables_combined = filter(metastases_sample_correlation_tables_combined, !is.na(q_value))
 
-# Remove correlations where q_value is NA
-metastases_sample_correlation_tables_combined = filter(metastases_sample_correlation_tables_combined, !is.na(q_value))
-
 # Make violin plots for distributions of correlation values without clusters
 metastases_sample_all_correlations_violin_plots = 
   ggplot(metastases_sample_correlation_tables_combined, aes(y = cor, x =  definition, fill = definition)) +
@@ -243,15 +240,12 @@ metastases_correlation_proportions_barplot = customize_ggplot_theme(metastases_c
   xlab = "Promoter Definition", ylab = "Proportion of Significant Correlations", fill_colors = colour_list$purple_and_gold_light) +
   theme(legend.position = c(0.9, 0.9))
 
-# Combine tumour plots and save
-combined_tumour_plots = ggarrange(plotlist = list(tumour_sample_all_correlations_violin_plots, tumour_correlation_proportions_barplot),
-  labels = c("A", "B"))
-
 # Combine metastases plots and save
 combined_tumour_and_metastases_plots = ggarrange(plotlist = list(tumour_sample_all_correlations_violin_plots, metastases_sample_all_correlations_violin_plots, 
   tumour_correlation_proportions_barplot, metastases_correlation_proportions_barplot),
   labels = c("A", "B", "C", "D"))
-ggsave(plot = combined_tumour_and_metastases_plots, filename = "../figures/supp_figure9.pdf", width = 20.57, height = 24.34)
+combined_tumour_and_metastases_plots
+ggsave(plot = combined_tumour_and_metastases_plots, filename = "../figures/supp_figure8.pdf", width = 20.57, height = 24.34)
 
 ### Make example plots for MCRPC samples
 

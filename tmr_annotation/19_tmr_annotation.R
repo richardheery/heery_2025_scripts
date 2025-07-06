@@ -40,32 +40,41 @@ background_gr$region_type = "Background"
 
 # Convert genome_annotation_hg38 to a list
 genome_annotation_hg38_list = GRangesList(split(genome_annotation_hg38, genome_annotation_hg38$region_type))
+genome_annotation_hg38_list = lapply(genome_annotation_hg38_list, function(x) GenomicRanges::intersect(x, transcripts_gr, ignore.strand = T))
 
 ######
 tmr_list = readRDS("../finding_tmrs/tmr_granges/tmr_list.rds")
-res = data.frame(lapply(tmr_list, function(x) 
+true = lapply(tmr_list, function(x) 
     sapply(genome_annotation_hg38_list, function(y)
-      sum(width(GenomicRanges::intersect(x, y, ignore.strand = T)))/sum(width(reduce(y, ignore.strand = T)))*1000)))
+      sum(width(GenomicRanges::intersect(x, y, ignore.strand = T)))/sum(width(reduce(y, ignore.strand = T)))*1000000))
 
 
-system.time({permutation_results = foreach(i = 1:2, .combine = rbind) %do% {
+cl = makeCluster(10)
+registerDoParallel(cl, 10)
+system.time({permutation_results = foreach(i = 1:100, .combine = rbind, .packages = "GenomicRanges") %dopar% {
+  
+  print(i)
   
   # 
   genome_annotation_hg38_copy = genome_annotation_hg38
   genome_annotation_hg38_copy$region_type = sample(genome_annotation_hg38_copy$region_type)
   genome_annotation_hg38_copy_list = split(genome_annotation_hg38_copy, genome_annotation_hg38_copy$region_type)
+  genome_annotation_hg38_copy_list = lapply(genome_annotation_hg38_copy_list, function(x) GenomicRanges::intersect(x, transcripts_gr, ignore.strand = T))
   
-  res = data.frame(lapply(tmr_list, function(x) 
-    sapply(genome_annotation_hg38_copy_list, function(y)
-      sum(width(GenomicRanges::intersect(x, y, ignore.strand = T)))/sum(width(reduce(y, ignore.strand = T)))*1000000)))
+  res = data.frame(lapply(genome_annotation_hg38_copy_list, function(x) 
+    sapply(tmr_list, function(y)
+      sum(width(GenomicRanges::intersect(x, y, ignore.strand = T)))/sum(width(reduce(x, ignore.strand = T)))*1000000)))
   
-  res = tibble::rownames_to_column(res, "region_type")
-  res = tidyr::pivot_longer(res, cols = -region_type, names_to = "tmr_group", values_to = "bp")
-  res$iteration = i
+  res = tibble::rownames_to_column(res, "tmr_group")
   res
   
 }})
 
+permutation_results = split(dplyr::select(permutation_results, -tmr_group), permutation_results$tmr_group)
+true$cpgea_normal_tmrs_negative
+permutation_results$cpgea_normal_tmrs_negative
+
+(rowSums(apply(permutation_results$cpgea_normal_tmrs_negative, 1, function(x) x > true$cpgea_normal_tmrs_negative))+1)/101
 
 #####
 

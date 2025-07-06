@@ -159,3 +159,28 @@ combined_kegg_and_hallmark_plots = ggpubr::ggarrange(plotlist = list(
     nrow = 2, labels = c("A", "B"))
 combined_kegg_and_hallmark_plots
 ggsave(plot = combined_kegg_and_hallmark_plots, "../figures/supp_figure15.pdf", width = 27, height = 18)
+
+### Compare methylation of DMRs and TMRs
+
+# Download DMRs
+system("wget wget https://s3-us-west-2.amazonaws.com/feng.genomics/WGBS/secondary_data.zip")
+system("tar -xvzf secondary_data.zip")
+
+# Read in DMRs and convert to a GRanges and set chromosome style to UCSC
+dmrs = data.table::fread("secondary_data/DSS/DSS_mAdeno_benignprostate.tsv")
+dmrs_gr = makeGRangesFromDataFrame(dmrs, keep.extra.columns = T)
+seqlevels(dmrs_gr)[c(23, 24)] = c("X", "Y")
+seqlevelsStyle(dmrs_gr) = "UCSC"
+
+# Check proportion of hypermethylated and hypomethylated DMRs. 96% are hypomethylated
+prop.table(table(sign(dmrs_gr$diff.Methy)))
+
+# Check proportion of hypermethylated and hypomethylated DMRs overlapping negative TMRs in metastasis samples. 22% are hypermethylated 
+prop.table(table(sign(subsetByOverlaps(dmrs_gr, tmr_list$mcrpc_tmrs_negative)$diff.Methy)))
+
+mcrpc_tmrs = readRDS("../finding_tmrs/tmr_granges/mcrpc_tmrs.rds")
+
+tmr_genes_overlapping_dmrs = unique(subsetByOverlaps(mcrpc_tmrs, dmrs_gr)$gene_name)
+
+filter(fisher_test_apply(test = tmr_genes_overlapping_dmrs, universe = background_genes, query_list = msigdb_gene_set_list$`CP:KEGG`, return_overlap = F), q_value < 0.05)
+filter(fisher_test_apply(test = tmr_genes_overlapping_dmrs, universe = background_genes, query_list = msigdb_gene_set_list$h, return_overlap = F), q_value < 0.05)

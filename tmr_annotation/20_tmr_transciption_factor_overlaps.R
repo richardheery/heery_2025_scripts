@@ -102,7 +102,7 @@ combined_tmr_remap_enrichment_plot
 # Combine with combined_annotation_plot
 combined_annotation_plot = readRDS("combined_annotation_plot.rds")
 
-figure6 = ggpubr::ggarrange(plotlist = list(combined_annotation_plot, ggpubr::ggarrange(combined_tmr_remap_enrichment_plot, labels = "C", font.label = list(size = 20))),
+figure5 = ggpubr::ggarrange(plotlist = list(combined_annotation_plot, ggpubr::ggarrange(combined_tmr_remap_enrichment_plot, labels = "C", font.label = list(size = 20))),
   nrow = 2, heights = c(27, 15.2), widths = 27) 
-figure6
-ggsave(plot = figure6, "../figures/figure6.pdf", width = 27, height = 42.2)
+figure5
+ggsave(plot = figure5, "../figures/figure5.pdf", width = 27, height = 42.2)
