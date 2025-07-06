@@ -57,6 +57,14 @@ saveRDS(cpgea_normal_tmrs, "tmr_granges/cpgea_normal_tmrs.rds")
 saveRDS(cpgea_tumour_tmrs, "tmr_granges/cpgea_tumour_tmrs.rds")
 saveRDS(mcrpc_tmrs, "tmr_granges/mcrpc_tmrs.rds")
 
+# Create BED files with locations of TMRs, adding direction to TMR name
+names(cpgea_normal_tmrs) = paste(cpgea_normal_tmrs$tmr_name, cpgea_normal_tmrs$direction, sep = "_")
+rtracklayer::export.bed(cpgea_normal_tmrs, "tmr_bed_files/normal_prostate_tmrs.bed")
+names(cpgea_tumour_tmrs) = paste(cpgea_tumour_tmrs$tmr_name, cpgea_tumour_tmrs$direction, sep = "_")
+rtracklayer::export.bed(cpgea_tumour_tmrs, "tmr_bed_files/prostate_tumour_tmrs.bed")
+names(mcrpc_tmrs) = paste(mcrpc_tmrs$tmr_name, mcrpc_tmrs$direction, sep = "_")
+rtracklayer::export.bed(mcrpc_tmrs, "tmr_bed_files/prostate_metastases_tmrs.bed")
+
 # Create a list of filtered TMRs and save
 tmr_list = list(
   cpgea_normal_tmrs_negative = cpgea_normal_tmrs[cpgea_normal_tmrs$direction == "Negative"],
