@@ -119,7 +119,7 @@ plot_tmr_regions = function(tmrs, transcript_regions_gr, regions_filter, normali
   
   # Create plot of number of TMRs per region
   regions_plot_normalized = ggplot(tmr_overlaps_count_filtered, aes(x = region, y = count, fill = direction)) +
-    geom_col(position = "dodge", color = "black") + scale_fill_manual(values = c(colour_list$purple_and_gold_light), drop = F)
+    geom_col(position = "dodge", color = "black") + scale_fill_manual(values = c(colour_list$purple_and_gold_light), drop = F) 
   regions_plot_normalized = customize_ggplot_theme(regions_plot_normalized, 
     title = NULL,
     xlab = NULL, ylab = ylab,

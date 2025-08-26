@@ -152,7 +152,7 @@ significant_tmr_cor_barplots = ggplot(significant_correlation_df, aes(x = sample
   geom_col(position = "dodge", color = "black")
 significant_tmr_cor_barplots = customize_ggplot_theme(significant_tmr_cor_barplots, facet = "tmr_group", facet_nrow = 3, fill_colors = colour_list$purple_and_gold_light, 
   x_labels = c("Normal Prostate Samples", "Prostate Tumour Samples", "Prostate Metastasis Samples"), 
-  ylab = "Proportion of Correlations that are Significant", fill_title = "TMR Direction",
+  ylab = "Proportion of Significant Correlations", fill_title = "TMR Direction",
   fill_labels = c("Negative", "Positive"), facet_labels = c("Normal Prostate TMRs", "Prostate Tumour TMRs", "Prostate Metastasis TMRs")) +
   scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
   theme(strip.background = element_blank())
@@ -164,8 +164,8 @@ tmr_stats_barplot = readRDS("tmr_stats_barplot.rds")
 tmr_stats_heatmaps = readRDS("tmr_stat_heatmaps.rds")
 
 plotlist = list(tmrs_5kb_bins_plot, tmr_stats_barplot, tmr_stats_heatmaps, correlation_distribution_violins, significant_tmr_cor_barplots)
-supp_figure_10 = ggarrange(plotlist = plotlist, nrow = 5, labels = LETTERS[1:5], widths = 27, heights = c(9, 9, 9, 11.815, 11.815))
-ggsave(plot = supp_figure_10, "../figures/supp_figure10.pdf", width = 27, height = 50.63, limitsize = FALSE)
+supp_figure9 = ggpubr::ggarrange(plotlist = plotlist, nrow = 5, labels = LETTERS[1:5], widths = 27, heights = c(9, 9, 9, 11.815, 11.815))
+ggsave(plot = supp_figure9, "../figures/supp_figure9.pdf", width = 27, height = 50.63, limitsize = FALSE)
 
 # Count proportion of significant correlations for external TMRs 
 tmr_evaluation_tables_external = filter(tmr_evaluation_tables, samples != tmr_samples)

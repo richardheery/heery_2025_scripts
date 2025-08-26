@@ -26,11 +26,8 @@ supplementary_figure16 = ? TSG and oncogenes plot
 supplementary_figure17 = 23_illumina_probe_analyses.R ***! [Remove]
 supplementary_figure18 = 24_tcga_probe_transcript_cors.R ***!
 
-Supp figure 9 change Proportion of Correlations that are Significant
-diamonds for methylation change
-labels for distribution plots
+Split supp_figure 9 into two figures?
 Readd repeats for figure 5
 remove tumour plot from figure 7?
 Check correlation in legend for supp_figure2.pdf
-
-elements￹ among
+Make plot comparing histone marks in -/+ tumour

@@ -64,8 +64,13 @@ names(mcrpc_tmr_tcga_tumour_cors) = names(deseq2_normalized_count_files)
 saveRDS(mcrpc_tmr_tcga_tumour_cors, "mcrpc_tmr_tcga_tumour_cors.rds")
 mcrpc_tmr_tcga_tumour_cors = readRDS("mcrpc_tmr_tcga_tumour_cors.rds")
 
-# Combine results for different cancer types
+# Combine results for different cancer types and update q-values
 mcrpc_tmr_tcga_tumour_cors = dplyr::bind_rows(mcrpc_tmr_tcga_tumour_cors, .id = "project")
+mcrpc_tmr_tcga_tumour_cors$q_val = p.adjust(mcrpc_tmr_tcga_tumour_cors$p_val, method = "fdr")
+
+# Check proportion of significant correlations. 62% are significant overall and 92% in prostate cancer
+prop.table(table(mcrpc_tmr_tcga_tumour_cors$q_val < 0.05))
+prop.table(table(filter(mcrpc_tmr_tcga_tumour_cors, cancer_type == "Prostate")$q_val < 0.05))
 
 # Add direction of TMRs 
 mcrpc_tmr_tcga_tumour_cors$direction = mcrpc_tmrs$direction[match(mcrpc_tmr_tcga_tumour_cors$genomic_region_name, mcrpc_tmrs$tmr_name)]

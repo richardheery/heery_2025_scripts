@@ -202,10 +202,6 @@ tss_grl = split(transcripts_gr_sections, transcripts_gr_sections$transcript_id)
 tss_grl_expanded = expand_transcripts(grl = tss_grl, expand_upstream = seq(500, 5000, 500), expand_downstream = seq(500, 5000, 500))
 
 # Create a vector with the regions to plot
-exons = paste0("exon_", 1:20)
-introns = paste0("intron_", 1:20)
-exons_introns = c(rbind(exons, introns))
-exons_introns = exons_introns[-length(exons_introns)]
 regions = c(paste0("TSS-", rev(seq(500, 5000, 500))), paste("Region", 1:100), paste0("TES+", seq(500, 5000, 500)))
 xlabels = rep("", length(regions))
 xlabels[c(2, 6, 115, 119)] = c("-4,250", "-2,250", "+2,250", "+4,250")
@@ -215,11 +211,8 @@ xlabels[which(regions %in% c("25%", "50%", "75%"))] = c("25%", "50%", "75%")
 # Create absolute count and normalized counts for CPGEA normal samples
 cpgea_normal_tmrs_introns_exons_plot = plot_tmr_regions(tmrs = cpgea_normal_tmrs, 
   transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs in Normal Prostate", normalize = F)
-cpgea_normal_tmrs_introns_exons_plot_normalized = plot_tmr_regions(tmrs = cpgea_normal_tmrs, 
-  transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs in Normal Prostate", normalize = T)
-combined_normal_plots = ggarrange(plotlist = list(cpgea_normal_tmrs_introns_exons_plot, cpgea_normal_tmrs_introns_exons_plot_normalized), 
-  nrow = 2, labels = c("C", "D"), common.legend = T, legend = "right", align = "hv")
-combined_normal_plots
+cpgea_normal_tmrs_introns_exons_plot
+ggsave(plot = cpgea_normal_tmrs_introns_exons_plot, "cpgea_normal_tmrs_introns_exons_plot.pdf", width = 20.828, height = 7.875698)
 
 # Load TMR example plots and comboine with combined_normal_plots to make figure 5
 combined_tmr_correlation_plots = readRDS("combined_tmr_correlation_plots.rds")

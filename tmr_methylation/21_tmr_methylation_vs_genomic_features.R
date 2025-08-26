@@ -13,10 +13,10 @@ cpgea_rse = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylati
 genome_annotation = readRDS("../auxillary_data/complete_regulatory_annotation.rds")
 
 # Get repeat ranges for hg38
-repeat_ranges = readRDS("../auxillary_data/repeatmasker_granges_ucsc.rds")
+unmappable_regions = readRDS("../auxillary_data/low_mappability_regions.rds")
 
 # Remove any features which overlap repeats
-genome_annotation = subsetByOverlaps(genome_annotation, repeat_ranges, invert = T, ignore.strand = T)
+genome_annotation = subsetByOverlaps(genome_annotation, unmappable_regions, invert = T, ignore.strand = T)
 
 # Get a list of TMRs
 tmr_list = readRDS("../finding_tmrs/tmr_granges/tmr_list.rds")
