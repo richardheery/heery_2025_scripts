@@ -253,11 +253,4 @@ roadmap_tmrs_distributions = bin_relative_tmrs(roadmap_tmrs, width = 4750)
 # Make distribution plots for Roadmap TMRs
 roadmap_tmrs_introns_exons_plot = plot_tmr_regions(tmrs = roadmap_tmrs, 
   transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs in Normal Prostate", normalize = F)
-roadmap_tmrs_introns_exons_plot_normalized = plot_tmr_regions(tmrs = roadmap_tmrs, 
-  transcript_regions_gr = tss_grl_expanded, regions_filter = regions, title = "Distribution of TMRs in Normal Prostate", normalize = T)
-
-# Combine plots and save
-combined_roadmap_tmrs_introns_exons_plot = ggpubr::ggarrange(roadmap_tmrs_introns_exons_plot, roadmap_tmrs_introns_exons_plot, 
-  align = "hv", nrow = 2, labels = c("A", "B"), common.legend = T, legend = "right")
-combined_roadmap_tmrs_introns_exons_plot
 ggsave(plot = roadmap_tmrs_introns_exons_plot, "../figures/supp_figure11.pdf", width = 24, height = 13.5)
