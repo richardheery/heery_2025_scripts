@@ -217,7 +217,7 @@ ggsave(plot = cpgea_normal_tmrs_introns_exons_plot, "cpgea_normal_tmrs_introns_e
 # Load TMR example plots and comboine with combined_normal_plots to make figure 5
 combined_tmr_correlation_plots = readRDS("combined_tmr_correlation_plots.rds")
 figure4 = ggarrange(combined_tmr_correlation_plots, ggpubr::ggarrange(cpgea_normal_tmrs_introns_exons_plot, labels = "C"), heights = c(10.086, 3.9335), nrow = 2)
-ggsave(plot = figure4, "../figures/figure4.pdf", width = 20.828, height = 28.07)
+ggsave(plot = figure4, "../figures/figure4.pdf", width = 20.828, height = 28.07, device = cairo_pdf)
 
 # Create absolute count and normalized counts for CPGEA tumour samples
 cpgea_tumour_tmrs_introns_exons_plot = plot_tmr_regions(tmrs = cpgea_tumour_tmrs, 

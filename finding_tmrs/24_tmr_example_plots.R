@@ -67,7 +67,7 @@ qsox1_workflow_list = list(qsox1_cpg_correlation_plot, qsox1_methodical_scores_p
 qsox1_workflow_list = lapply(qsox1_workflow_list, function(x) x + theme(plot.title = element_text(hjust = 0.5, size = 16)))
 qsox1_workflow_plot = ggarrange(plotlist = qsox1_workflow_list, nrow = 2, ncol = 2, align = "hv")
 qsox1_workflow_plot
-ggsave(plot = qsox1_workflow_plot, "../figures/figure4.pdf", width = 20.57, height = 13.5)
+ggsave(plot = qsox1_workflow_plot, "../figures/figure3.pdf", width = 20.57, height = 13.5, device = cairo_pdf)
 
 ### Create example TMR plots from metastasis samples
 

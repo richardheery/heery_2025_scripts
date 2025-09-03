@@ -17,7 +17,7 @@ plot_cpg_cor_values_transcript = function(transcript, title = NULL,
 plot_promoter_correlations = function(transcript_id, title = "Promoter-Methylation\nTranscription Correlation"){
   
   # Get differential methylation results for transcript
-  transcript_results = dplyr::filter(mcrpc_sample_correlation_tables_combined, table1_feature == transcript_id)
+  transcript_results = dplyr::filter(metastases_sample_correlation_tables_combined, table1_feature == transcript_id)
   
   # Create plot
   ggplot(transcript_results, 

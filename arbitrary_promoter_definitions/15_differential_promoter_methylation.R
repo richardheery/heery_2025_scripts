@@ -121,11 +121,11 @@ promoters_and_examples_plot
 meth_change_proportions_barplot = plot_grid(plotlist = list(meth_change_proportions_barplot), labels = "D")
 
 # Add barplot to complete plot
-figure2_plot_list = list(promoters_and_examples_plot, meth_change_proportions_barplot)
-figure2_plot = plot_grid(plotlist = figure2_plot_list, nrow = 2, ncol = 1,
+figure1_plot_list = list(promoters_and_examples_plot, meth_change_proportions_barplot)
+figure1_plot = plot_grid(plotlist = figure1_plot_list, nrow = 2, ncol = 1,
   rel_heights = c(0.65, 0.35))
-figure2_plot
-ggsave(plot = figure2_plot, filename = "../figures/figure2.pdf", 
+figure1_plot
+ggsave(plot = figure1_plot, filename = "../figures/figure1.pdf", 
   width = 20.57, height = 32.72, device = cairo_pdf)
 
 ### Make hypermethylated/hypomethylated promoters overlaps plot 

@@ -70,7 +70,7 @@ mcrpc_tmr_tcga_tumour_cors$q_val = p.adjust(mcrpc_tmr_tcga_tumour_cors$p_val, me
 
 # Check proportion of significant correlations. 62% are significant overall and 92% in prostate cancer
 prop.table(table(mcrpc_tmr_tcga_tumour_cors$q_val < 0.05))
-prop.table(table(filter(mcrpc_tmr_tcga_tumour_cors, cancer_type == "Prostate")$q_val < 0.05))
+prop.table(table(filter(mcrpc_tmr_tcga_tumour_cors, project == "PRAD")$q_val < 0.05))
 
 # Add direction of TMRs 
 mcrpc_tmr_tcga_tumour_cors$direction = mcrpc_tmrs$direction[match(mcrpc_tmr_tcga_tumour_cors$genomic_region_name, mcrpc_tmrs$tmr_name)]
@@ -78,14 +78,14 @@ mcrpc_tmr_tcga_tumour_cors$direction = mcrpc_tmrs$direction[match(mcrpc_tmr_tcga
 # Divide the cancer types into 3 groups
 mcrpc_tmr_tcga_tumour_cors$group = ceiling(as.numeric(as.factor(mcrpc_tmr_tcga_tumour_cors$project))/10)
 mcrpc_tmr_tcga_tumour_cors$project = factor(mcrpc_tmr_tcga_tumour_cors$project)
-mcrpc_tmr_tcga_tumour_cors$cancer_type = mcrpc_tmr_tcga_tumour_cors$project
-levels(mcrpc_tmr_tcga_tumour_cors$cancer_type) = c("Adrenocortical", "Bladder", "Breast", "Cervical", "Colon", "Esophageal", "Glioma", "Head and\nNeck", 
+mcrpc_tmr_tcga_tumour_cors$project = mcrpc_tmr_tcga_tumour_cors$project
+levels(mcrpc_tmr_tcga_tumour_cors$project) = c("Adrenocortical", "Bladder", "Breast", "Cervical", "Colon", "Esophageal", "Glioma", "Head and\nNeck", 
     "Kidney\nChromophobe", "Kidney\nClear Cell", "Kidney\nPapillary Cell", "Lower Grade\nGlioma", "Liver", "Lung Adeno-\ncarcinoma", "Lung\nSquamous", "Mesothelioma",
     "Pancreatic", "PCPG", "Prostate", "Rectal", "Sarcoma", "Skin\nMelanoma", "Stomach",
     "Testicular\nGerm Cell", "Thyroid", "Thymoma", "Uterine\nCarcinosarcoma", "Endometrial", "Uveal\nMelanoma")
 
 # Create boxplots of the correlations
-mcrpc_tmr_tcga_tumour_cors_boxplots = ggplot(mcrpc_tmr_tcga_tumour_cors, aes(x = cancer_type, y = cor, fill = direction)) +
+mcrpc_tmr_tcga_tumour_cors_boxplots = ggplot(mcrpc_tmr_tcga_tumour_cors, aes(x = project, y = cor, fill = direction)) +
   geom_boxplot() + geom_hline(yintercept = 0, linetype = "dashed") +
   facet_wrap("~ group", nrow = 3, scales = "free")
 mcrpc_tmr_tcga_tumour_cors_boxplots = customize_ggplot_theme(mcrpc_tmr_tcga_tumour_cors_boxplots, fill_colors = colour_list$purple_and_gold_light, 
@@ -103,4 +103,4 @@ figure6_top = ggpubr::ggarrange(plotlist = list(tmr_direction_meth_change_barplo
 figure6_bottom = ggpubr::ggarrange(plotlist = list(tcga_wgbs_feature_meth_change_plot, mcrpc_tmr_tcga_tumour_cors_boxplots), nrow = 2, labels = c("C", "D"))
 figure6_complete = ggpubr::ggarrange(plotlist = list(figure6_top, figure6_bottom), nrow = 2, heights = c(9, 18))
 figure6_complete
-ggsave(plot = figure6_complete, "../figures/figure6.pdf", width = 16, height = 27)
+ggsave(plot = figure6_complete, "../figures/figure6_1.pdf", width = 16, height = 27, device = cairo_pdf)

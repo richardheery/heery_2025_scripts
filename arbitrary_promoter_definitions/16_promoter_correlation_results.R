@@ -277,8 +277,8 @@ promoters_and_examples_plot = plot_grid(plotlist = promoters_and_examples_plot_l
   rel_heights = c(1.5, 6, 6), rel_widths = c(3.5, 1), labels = c("A", "", "B", "", "C", ""))
 
 # Add barplot to complete plot
-figure3_plot_list = list(promoters_and_examples_plot, combined_normal_correlation_plots)
-figure3_plot = plot_grid(plotlist = figure3_plot_list, nrow = 2, ncol = 1, rel_heights = c(13.5, 5.5))
-figure3_plot
-ggsave(plot = figure3_plot, filename = "../figures/figure3.pdf", 
+figure2_plot_list = list(promoters_and_examples_plot, combined_normal_correlation_plots)
+figure2_plot = plot_grid(plotlist = figure2_plot_list, nrow = 2, ncol = 1, rel_heights = c(13.5, 5.5))
+figure2_plot
+ggsave(plot = figure2_plot, filename = "../figures/figure2.pdf", 
   width = 20.57, height = 30.07, device = cairo_pdf)

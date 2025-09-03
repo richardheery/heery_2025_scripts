@@ -121,11 +121,11 @@ cpgs_per_bin_plot = readRDS("cpgs_per_bin_plot.rds")
 combined_probes_per_bin_plot = readRDS("combined_probes_per_bin_plot.rds")
 
 # Make combined plot with CpGs, probes and tumour plots
-figure8_plot = cowplot::plot_grid(plotlist = 
+figure7_plot = cowplot::plot_grid(plotlist = 
     list(cpgs_per_bin_plot, combined_probes_per_bin_plot, normal_prop_sig_bins_plot, tumour_prop_sig_bins_plot), 
   nrow = 2, ncol = 2, align = "hv", labels = c("A", "B", "C", "D"), byrow = T)
-figure8_plot
-ggsave(plot = figure8_plot, "../figures/figure8.pdf", width = 32, height = 18)
+figure7_plot
+ggsave(plot = figure7_plot, "../figures/figure7.pdf", width = 32, height = 18 , device = cairo_pdf)
 
 # Calculate correlation for tumour samples for each project
 # Took 8 hours with 5 cores
