@@ -82,10 +82,10 @@ rm(transcript_meth_cors_cpgea_tumour_samples_50kb); gc()
 mcrpc_meth_rse = HDF5Array::loadHDF5SummarizedExperiment("../auxillary_data/methylation_data/mcrpc_meth_rse/")
 mcrpc_kallisto_deseq2_counts = data.frame(data.table::fread("../auxillary_data/rnaseq_data/mcrpc_transcript_counts.tsv.gz"), row.names = 1)
 
-# Get mcrpc normal and tumour samples
+# Get metastasis samples with WGBS and RNA-seq
 common_mcrpc_samples = intersect(names(mcrpc_kallisto_deseq2_counts), colnames(mcrpc_meth_rse))
 
-# Calculate methylation-transcription correlations for MCRPC samples. Took 29 hours with 5 cores.  
+# Calculate methylation-transcription correlations for MCRPC samples. Took 29 minutes with 5 cores.  
 system.time({transcript_meth_cors_mcrpc_samples_50kb = calculateMethSiteTranscriptCors(meth_rse = mcrpc_meth_rse, 
   transcript_expression_table = mcrpc_kallisto_deseq2_counts, samples_subset = common_mcrpc_samples, tss_gr = tss_gr, tss_associated_gr = transcripts_gr_50kb, 
   cor_method = "spearman", min_number_complete_pairs = 30, BPPARAM = bpparam, add_distance_to_region = T)})
